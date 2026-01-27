@@ -19,16 +19,23 @@
             --color-accent: #00B2E3;   /* Bleu cyan */
             --text-body: #666666;      
             
-            /* COULEURS DATAVIZ */
+            /* COULEURS DATAVIZ (Déjà existantes) */
             --c-artif: #D64541;    
             --c-agri: #F2CA27;     
             --c-nature: #88C425;   
             --c-water: #4A90E2;    
+
+            /* NOUVELLES COULEURS (Pour Treemap Page 4 - Style Capture) */
+            --tm-mint: #A0D9B4;    /* Vert Menthe (Zones Herbacées) */
+            --tm-forest: #56B880;  /* Vert Feuillus */
+            --tm-darkblue: #3B4A6B;/* Bleu Nuit (Agriculture) */
+            --tm-grey: #B0B0B0;    /* Gris (Sylviculture) */
+            --tm-bright: #68D48E;  /* Vert Clair */
         }
 
         body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', sans-serif; background-color: var(--bg-main); color: var(--text-body); overflow-x: hidden; }
         
-        /* --- SIDEBAR & NAV (INCHANGÉ) --- */
+        /* --- SIDEBAR & NAV --- */
         .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 80px; background-color: #FFFFFF; box-shadow: 5px 0 25px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
         .scroll-indicators { display: flex; flex-direction: column; gap: 25px; }
         .dot { width: 6px; height: 6px; background-color: #DDDDDD; border-radius: 50%; cursor: pointer; transition: all 0.4s ease; }
@@ -63,143 +70,126 @@
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #555; }
         .color-dot { width: 12px; height: 12px; border-radius: 3px; }
 
-        /* =================================================================
-           --- CSS PAGE 3 : DASHBOARD COMPLET --- 
-           ================================================================= */
-        
+        /* --- PAGE 3 : DASHBOARD --- */
         #page3 { background-color: var(--bg-main); color: var(--text-body); overflow: hidden; }
         .p3-layout { display: flex; width: 100%; height: 100vh; }
-
-        /* --- COLONNE GAUCHE : CARTE + LEGENDE --- */
-        .p3-map-area {
-            width: 35%; 
-            height: 100%; 
-            position: relative;
-            background: #FFFEFA; 
-            border-right: 1px solid #eee; 
-            z-index: 5;
-            /* MODIFICATION POUR PLACER LA LEGENDE EN BAS */
-            display: flex;
-            flex-direction: column;
-        }
-        
-        #map-viz { 
-            width: 100%; 
-            flex: 1; /* Prend tout l'espace disponible */
-            background: transparent; 
-        }
-        
-        /* Selecteur Flottant (Reste en haut) */
-        .map-selector {
-            position: absolute; top: 30px; left: 20px; z-index: 1000;
-            width: 280px; background: #fff; border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 5px; border: 1px solid #eee;
-        }
-        .map-selector select {
-            width: 100%; border: none; padding: 12px 15px;
-            font-family: 'DM Sans'; font-size: 0.95rem; font-weight: 600;
-            color: var(--color-dark); background: #fff; outline: none; cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231A3C34%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 10px auto;
-        }
-
-        /* --- LEGENDE / FILTRES (DÉPLACÉ EN BAS À GAUCHE) --- */
-        .filter-container {
-            /* Style adapté pour le bas de colonne */
-            background: #fff; 
-            padding: 20px; 
-            border-top: 1px solid #eee;
-            width: 100%;
-            box-sizing: border-box;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            flex-wrap: wrap; /* Si l'écran est petit, ça passe à la ligne */
-            gap: 10px;
-            z-index: 10;
-        }
-        .filter-title {
-            font-size: 0.75rem; font-weight: 700; color: #999;
-            text-transform: uppercase; margin-right: 5px; width: 100%; text-align: center; margin-bottom: 10px;
-        }
-        .filter-btn {
-            border: none; padding: 8px 14px; border-radius: 6px;
-            font-family: 'DM Sans'; font-size: 0.8rem; font-weight: 700; color: #fff;
-            cursor: pointer; transition: all 0.2s; opacity: 1; transform: scale(1);
-        }
+        .p3-map-area { width: 35%; height: 100%; position: relative; background: #FFFEFA; border-right: 1px solid #eee; z-index: 5; display: flex; flex-direction: column; }
+        #map-viz { width: 100%; flex: 1; background: transparent; }
+        .map-selector { position: absolute; top: 30px; left: 20px; z-index: 1000; width: 280px; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 5px; border: 1px solid #eee; }
+        .map-selector select { width: 100%; border: none; padding: 12px 15px; font-family: 'DM Sans'; font-size: 0.95rem; font-weight: 600; color: var(--color-dark); background: #fff; outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231A3C34%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 10px auto; }
+        .filter-container { background: #fff; padding: 20px; border-top: 1px solid #eee; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .filter-title { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; margin-right: 5px; width: 100%; text-align: center; margin-bottom: 10px; }
+        .filter-btn { border: none; padding: 8px 14px; border-radius: 6px; font-family: 'DM Sans'; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; transition: all 0.2s; opacity: 1; transform: scale(1); }
         .filter-btn:hover { transform: scale(1.05); }
         .filter-btn.inactive { opacity: 0.2; transform: scale(0.95); }
-
-
-        /* --- COLONNE DROITE : DATAS --- */
-        .p3-deck-area {
-            width: 65%; height: 100%; display: flex; flex-direction: column;
-            justify-content: center; padding-left: 50px; box-sizing: border-box;
-            position: relative;
-        }
-
+        .p3-deck-area { width: 65%; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-left: 50px; box-sizing: border-box; position: relative; }
         .p3-header-text { margin-bottom: 20px; z-index: 20; }
-        .location-badge {
-            background: var(--color-vivid); color: #fff; padding: 5px 12px;
-            border-radius: 20px; font-size: 0.75rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 10px;
-        }
+        .location-badge { background: var(--color-vivid); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 10px; }
         .p3-header-text h2 { margin: 5px 0 10px 0; font-size: 2.5rem; }
-
-        /* KPI STATS */
         .kpi-row { display: flex; gap: 40px; margin-bottom: 30px; }
         .kpi-box { border-left: 4px solid var(--color-accent); padding-left: 15px; }
         .kpi-value { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 2.5rem; color: #222; line-height: 1; }
         .kpi-label { font-size: 0.85rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-        
-        /* DECK CONTAINER */
-        .deck-container {
-            display: flex; align-items: center; height: 500px;
-            padding: 20px 0; position: relative;
-            overflow-x: auto; overflow-y: visible; width: 100%; padding-right: 50px;
-            scrollbar-width: thin; scrollbar-color: #ddd transparent;
-        }
+        .deck-container { display: flex; align-items: center; height: 500px; padding: 20px 0; position: relative; overflow-x: auto; overflow-y: visible; width: 100%; padding-right: 50px; scrollbar-width: thin; scrollbar-color: #ddd transparent; }
         .deck-container::-webkit-scrollbar { height: 6px; }
         .deck-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.1); border-radius: 10px; }
-
-        /* CARTE INDIVIDUELLE */
-        .deck-card {
-            min-width: 280px; width: 280px; height: 420px;
-            background: #FFFFFF; border-radius: 12px; border: 1px solid #eee;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.08); 
-            margin-right: -180px; position: relative;
-            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            cursor: pointer; display: flex; flex-direction: column; overflow: hidden; z-index: 1;
-        }
-
+        .deck-card { min-width: 280px; width: 280px; height: 420px; background: #FFFFFF; border-radius: 12px; border: 1px solid #eee; box-shadow: -5px 0 25px rgba(0,0,0,0.08); margin-right: -180px; position: relative; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer; display: flex; flex-direction: column; overflow: hidden; z-index: 1; }
         .deck-header { padding: 25px; border-bottom: 1px solid #f0f0f0; background: linear-gradient(to bottom, #fff, #fbfbfb); }
         .deck-title { color: var(--color-dark); font-family: 'DM Sans'; font-weight: 700; font-size: 1.1rem; margin-bottom: 5px; white-space: nowrap; }
         .deck-sub { color: #999; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
-
-        .deck-card.active {
-            min-width: 520px; width: 520px; margin-right: 30px; 
-            z-index: 50; transform: scale(1.02); 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); border-color: var(--color-vivid); cursor: default;
-        }
-
-        .chart-content {
-            flex: 1; padding: 30px; opacity: 0; transition: opacity 0.3s ease 0.2s;
-            display: flex; flex-direction: column; justify-content: center; gap: 15px; 
-        }
+        .deck-card.active { min-width: 520px; width: 520px; margin-right: 30px; z-index: 50; transform: scale(1.02); box-shadow: 0 20px 50px rgba(0,0,0,0.15); border-color: var(--color-vivid); cursor: default; }
+        .chart-content { flex: 1; padding: 30px; opacity: 0; transition: opacity 0.3s ease 0.2s; display: flex; flex-direction: column; justify-content: center; gap: 15px; }
         .deck-card.active .chart-content { opacity: 1; }
-
-        /* CHART ROWS */
         .chart-row { display: flex; align-items: center; height: 35px; transition: opacity 0.3s; }
         .chart-row.dimmed { opacity: 0.1; }
         .chart-label { width: 90px; color: #666; font-size: 0.85rem; font-weight: 600; text-align: right; padding-right: 15px; }
         .chart-bar-bg { flex: 1; height: 24px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
-        .chart-bar-fill {
-            height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 10px;
-            font-size: 0.75rem; font-weight: bold; color: #fff; white-space: nowrap; width: 0%; 
-            transition: width 1s ease-out; box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
-        }
+        .chart-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 10px; font-size: 0.75rem; font-weight: bold; color: #fff; white-space: nowrap; width: 0%; transition: width 1s ease-out; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
         .chart-value { width: 50px; padding-left: 10px; color: var(--color-dark); font-weight: 700; font-size: 0.9rem; }
+
+        /* =================================================================
+           --- CSS PAGE 4 : TREEMAPS (PROPORTIONNEL) --- 
+           ================================================================= */
+        
+        #page4 {
+            padding: 5% 8%; /* Marges généreuses */
+            box-sizing: border-box;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .treemap-section {
+            width: 100%;
+            margin-bottom: 60px;
+        }
+        
+        .treemap-header {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .treemap-title {
+            font-family: 'Playfair Display';
+            font-size: 2rem;
+            color: var(--color-dark);
+            margin: 0;
+        }
+        .treemap-date {
+            font-size: 0.9rem;
+            color: #999;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        /* CONTENEUR TREEMAP (Ligne Flex) */
+        .treemap-container {
+            width: 100%;
+            height: 300px; /* Hauteur fixe du bloc */
+            display: flex; /* Disposition en ligne */
+            gap: 4px; /* Petit espace blanc entre les blocs */
+        }
+
+        /* BLOCS DU TREEMAP */
+        .tm-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+        .tm-item:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        /* COLONNE D'ITEMS (Pour les petits blocs empilés) */
+        .tm-column {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* TEXTE DANS LES BOITES */
+        .tm-label { font-weight: 700; font-size: 1rem; margin-bottom: 5px; line-height: 1.2; }
+        .tm-val { font-size: 0.8rem; opacity: 0.9; }
+        .tm-percent { font-size: 1.2rem; font-weight: 700; margin-top: 5px; }
+
+        /* COULEURS SPÉCIFIQUES TREEMAP */
+        .bg-mint { background-color: var(--tm-mint); color: #fff; }
+        .bg-forest { background-color: var(--tm-forest); }
+        .bg-blue { background-color: var(--c-water); }
+        .bg-darkblue { background-color: var(--tm-darkblue); }
+        .bg-grey { background-color: var(--tm-grey); }
+        .bg-bright { background-color: var(--tm-bright); }
 
     </style>
 </head>
@@ -210,7 +200,7 @@
             <div class="dot active" onclick="scrollToSection('page1')"></div>
             <div class="dot" onclick="scrollToSection('page2')"></div>
             <div class="dot" onclick="scrollToSection('page3')"></div>
-        </div>
+            <div class="dot" onclick="scrollToSection('page4')"></div> </div>
     </aside>
 
     <div class="burger"><div></div><div></div><div></div></div>
@@ -224,9 +214,7 @@
                 <hr class="separator">
                 <div style="margin: 20px 0;">
                     <div class="subtitle">Analyse Géographique</div>
-                    <p class="description-text">
-                        Une lecture géographique précise. Explorez l'occupation des sols, les zones naturelles et l'évolution de l'artificialisation.
-                    </p>
+                    <p class="description-text">Une lecture géographique précise. Explorez l'occupation des sols, les zones naturelles et l'évolution de l'artificialisation.</p>
                 </div>
                 <div class="kpi-section">
                     <div class="subtitle">SURFACE TOTALE</div>
@@ -241,9 +229,7 @@
                 <div class="subtitle">Données Réelles : Villeneuve-la-Comptal</div>
                 <h2 style="font-size: 3.5rem;">Correction<br>des Données.</h2>
                 <hr class="separator">
-                <p class="description-text">
-                    La parcelle 95 passe de <span style="color:var(--c-artif); font-weight:bold;">ARTIFICIALISÉ</span> à <span style="color:var(--c-nature); font-weight:bold;">NATURE</span>.
-                </p>
+                <p class="description-text">La parcelle 95 passe de <span style="color:var(--c-artif); font-weight:bold;">ARTIFICIALISÉ</span> à <span style="color:var(--c-nature); font-weight:bold;">NATURE</span>.</p>
                 <div class="legend-box">
                     <div class="legend-item"><div class="color-dot" style="background:var(--c-artif)"></div>Artif.</div>
                     <div class="legend-item"><div class="color-dot" style="background:var(--c-agri)"></div>Agri.</div>
@@ -259,7 +245,6 @@
         </section>
 
         <section class="page-section" id="page3">
-            
             <div class="p3-layout">
                 <div class="p3-map-area">
                     <div class="map-selector">
@@ -272,9 +257,7 @@
                             <option value="gruissan">Gruissan (Littoral)</option>
                         </select>
                     </div>
-                    
                     <div id="map-viz"></div>
-
                     <div class="filter-container">
                         <div class="filter-title">Filtrer par Classe</div>
                         <button class="filter-btn" style="background:var(--c-water)" onclick="toggleFilter('water', this)">Eau</button>
@@ -283,88 +266,123 @@
                         <button class="filter-btn" style="background:var(--c-artif)" onclick="toggleFilter('artif', this)">Bâti</button>
                     </div>
                 </div>
-
                 <div class="p3-deck-area">
-                    
                     <div class="p3-header-text">
                         <span id="locationBadge" class="location-badge">Département</span>
                         <h2 id="dynamicTitle">Aude Global</h2>
                     </div>
-
                     <div class="kpi-row">
-                        <div class="kpi-box">
-                            <div id="kpi-surface" class="kpi-value">6 139</div>
-                            <div class="kpi-label">Surface (km²)</div>
-                        </div>
-                        <div class="kpi-box">
-                            <div id="kpi-index" class="kpi-value">3.45</div>
-                            <div class="kpi-label">Indice Moyen / 4</div>
-                        </div>
+                        <div class="kpi-box"><div id="kpi-surface" class="kpi-value">6 139</div><div class="kpi-label">Surface (km²)</div></div>
+                        <div class="kpi-box"><div id="kpi-index" class="kpi-value">3.45</div><div class="kpi-label">Indice Moyen / 4</div></div>
                     </div>
-
                     <div class="deck-container">
-                        
                         <div class="deck-card active" onclick="activateDeck(this)">
-                            <div class="deck-header">
-                                <div class="deck-title">Données OSO (Reference)</div>
-                                <div class="deck-sub">Mise à jour : 2023</div>
-                            </div>
+                            <div class="deck-header"><div class="deck-title">Données OSO (Reference)</div><div class="deck-sub">Mise à jour : 2023</div></div>
                             <div class="chart-content">
-                                <div class="chart-row row-water">
-                                    <div class="chart-label">Eau</div>
-                                    <div class="chart-bar-bg"><div id="bar1-water" class="chart-bar-fill" style="width:1.08%; background:var(--c-water);"></div></div>
-                                    <div id="val1-water" class="chart-value">1.1%</div>
-                                </div>
-                                <div class="chart-row row-forest">
-                                    <div class="chart-label">Forêt</div>
-                                    <div class="chart-bar-bg"><div id="bar1-forest" class="chart-bar-fill" style="width:37.6%; background:var(--c-nature);"></div></div>
-                                    <div id="val1-forest" class="chart-value">37.6%</div>
-                                </div>
-                                <div class="chart-row row-crop">
-                                    <div class="chart-label">Culture</div>
-                                    <div class="chart-bar-bg"><div id="bar1-crop" class="chart-bar-fill" style="width:40.9%; background:#A67B5B;"></div></div>
-                                    <div id="val1-crop" class="chart-value">40.9%</div>
-                                </div>
-                                <div class="chart-row row-artif">
-                                    <div class="chart-label">Bâti</div>
-                                    <div class="chart-bar-bg"><div id="bar1-artif" class="chart-bar-fill" style="width:5.48%; background:var(--c-artif);"></div></div>
-                                    <div id="val1-artif" class="chart-value">5.5%</div>
-                                </div>
+                                <div class="chart-row row-water"><div class="chart-label">Eau</div><div class="chart-bar-bg"><div id="bar1-water" class="chart-bar-fill" style="width:1.08%; background:var(--c-water);"></div></div><div id="val1-water" class="chart-value">1.1%</div></div>
+                                <div class="chart-row row-forest"><div class="chart-label">Forêt</div><div class="chart-bar-bg"><div id="bar1-forest" class="chart-bar-fill" style="width:37.6%; background:var(--c-nature);"></div></div><div id="val1-forest" class="chart-value">37.6%</div></div>
+                                <div class="chart-row row-crop"><div class="chart-label">Culture</div><div class="chart-bar-bg"><div id="bar1-crop" class="chart-bar-fill" style="width:40.9%; background:#A67B5B;"></div></div><div id="val1-crop" class="chart-value">40.9%</div></div>
+                                <div class="chart-row row-artif"><div class="chart-label">Bâti</div><div class="chart-bar-bg"><div id="bar1-artif" class="chart-bar-fill" style="width:5.48%; background:var(--c-artif);"></div></div><div id="val1-artif" class="chart-value">5.5%</div></div>
                             </div>
                         </div>
-
                         <div class="deck-card" onclick="activateDeck(this)">
-                            <div class="deck-header">
-                                <div class="deck-title">Données CLC</div>
-                                <div class="deck-sub">Source : Corine Land Cover</div>
-                            </div>
+                            <div class="deck-header"><div class="deck-title">Données CLC</div><div class="deck-sub">Source : Corine Land Cover</div></div>
                             <div class="chart-content">
-                                <div class="chart-row row-water">
-                                    <div class="chart-label">Eau</div>
-                                    <div class="chart-bar-bg"><div id="bar2-water" class="chart-bar-fill" style="width:0.7%; background:var(--c-water);"></div></div>
-                                    <div id="val2-water" class="chart-value">0.7%</div>
-                                </div>
-                                <div class="chart-row row-forest">
-                                    <div class="chart-label">Forêt</div>
-                                    <div class="chart-bar-bg"><div id="bar2-forest" class="chart-bar-fill" style="width:35%; background:var(--c-nature);"></div></div>
-                                    <div id="val2-forest" class="chart-value">35.0%</div>
-                                </div>
-                                <div class="chart-row row-crop">
-                                    <div class="chart-label">Culture</div>
-                                    <div class="chart-bar-bg"><div id="bar2-crop" class="chart-bar-fill" style="width:50%; background:#A67B5B;"></div></div>
-                                    <div id="val2-crop" class="chart-value">50.0%</div>
-                                </div>
-                                <div class="chart-row row-artif">
-                                    <div class="chart-label">Bâti</div>
-                                    <div class="chart-bar-bg"><div id="bar2-artif" class="chart-bar-fill" style="width:7%; background:var(--c-artif);"></div></div>
-                                    <div id="val2-artif" class="chart-value">7.0%</div>
-                                </div>
+                                <div class="chart-row row-water"><div class="chart-label">Eau</div><div class="chart-bar-bg"><div id="bar2-water" class="chart-bar-fill" style="width:0.7%; background:var(--c-water);"></div></div><div id="val2-water" class="chart-value">0.7%</div></div>
+                                <div class="chart-row row-forest"><div class="chart-label">Forêt</div><div class="chart-bar-bg"><div id="bar2-forest" class="chart-bar-fill" style="width:35%; background:var(--c-nature);"></div></div><div id="val2-forest" class="chart-value">35.0%</div></div>
+                                <div class="chart-row row-crop"><div class="chart-label">Culture</div><div class="chart-bar-bg"><div id="bar2-crop" class="chart-bar-fill" style="width:50%; background:#A67B5B;"></div></div><div id="val2-crop" class="chart-value">50.0%</div></div>
+                                <div class="chart-row row-artif"><div class="chart-label">Bâti</div><div class="chart-bar-bg"><div id="bar2-artif" class="chart-bar-fill" style="width:7%; background:var(--c-artif);"></div></div><div id="val2-artif" class="chart-value">7.0%</div></div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
+        </section>
+
+        <section class="page-section" id="page4">
+            
+            <div style="width: 100%;">
+                <div class="subtitle">Répartition Macro</div>
+                <h2 style="margin-top:10px;">Structure du<br>Territoire.</h2>
+            </div>
+
+            <div class="treemap-section">
+                <div class="treemap-header">
+                    <h3 class="treemap-title">Couverture du sol</h3>
+                    <span class="treemap-date">(novembre 2025)</span>
+                </div>
+                
+                <div class="treemap-container">
+                    <div class="tm-item bg-mint" style="flex: 51;">
+                        <div class="tm-label">Zones herbacées</div>
+                        <div class="tm-val">30,7 millions d'ha</div>
+                        <div class="tm-percent">51,17 %</div>
+                    </div>
+
+                    <div class="tm-item bg-forest" style="flex: 25;">
+                        <div class="tm-label">Forêt de feuillus</div>
+                        <div class="tm-val">15,5 millions d'ha</div>
+                        <div class="tm-percent">25,80 %</div>
+                    </div>
+
+                    <div class="tm-column" style="flex: 24;">
+                        
+                        <div style="display:flex; flex:1; gap:4px;">
+                            <div class="tm-item bg-darkblue" style="flex: 6;">
+                                <div class="tm-label" style="font-size:0.8rem;">Forêt de conifères</div>
+                                <div class="tm-percent" style="font-size:1rem;">5,91 %</div>
+                            </div>
+                            <div class="tm-item bg-blue" style="flex: 5;">
+                                <div class="tm-label" style="font-size:0.8rem;">Surfaces d'eau</div>
+                                <div class="tm-percent" style="font-size:1rem;">4,90 %</div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; flex:1; gap:4px;">
+                            <div class="tm-item bg-bright" style="flex: 1;"><span style="font-size:0.7rem;">Autres<br>2,9%</span></div>
+                            <div class="tm-item bg-blue" style="flex: 1;"><span style="font-size:0.7rem;">Arbustes<br>2,5%</span></div>
+                            <div class="tm-item bg-grey" style="flex: 1;"><span style="font-size:0.7rem;">Zones bât.<br>2,1%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="treemap-section">
+                <div class="treemap-header">
+                    <h3 class="treemap-title">Usages du sol</h3>
+                    <span class="treemap-date">(novembre 2025)</span>
+                </div>
+                
+                <div class="treemap-container">
+                    <div class="tm-item bg-darkblue" style="flex: 49;">
+                        <div class="tm-label">Agriculture</div>
+                        <div class="tm-val">29,4 millions d'ha</div>
+                        <div class="tm-percent">49 %</div>
+                    </div>
+
+                    <div class="tm-item bg-grey" style="flex: 32;">
+                        <div class="tm-label">Sylviculture</div>
+                        <div class="tm-val">19,4 millions d'ha</div>
+                        <div class="tm-percent">32,32 %</div>
+                    </div>
+
+                    <div class="tm-item bg-forest" style="flex: 10;">
+                        <div class="tm-label">Espaces naturels</div>
+                        <div class="tm-val">5,9 millions d'ha</div>
+                        <div class="tm-percent">9,85 %</div>
+                    </div>
+
+                    <div class="tm-column" style="flex: 9;">
+                        <div class="tm-item bg-mint" style="flex:1;"><span style="font-size:0.7rem;">Résidentiel<br>4,58%</span></div>
+                        <div style="display:flex; flex:1; gap:4px;">
+                            <div class="tm-item bg-bright" style="flex:1;"><span style="font-size:0.6rem;">Routes</span></div>
+                            <div class="tm-item bg-bright" style="flex:1;"><span style="font-size:0.6rem;">Tertiaire</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </section>
 
         <div style="height: 20vh; background: var(--bg-main);"></div>
@@ -394,12 +412,8 @@
         mapLeft.on('move', () => mapRight.setView(mapLeft.getCenter(), mapLeft.getZoom(), {animate: false}));
         mapRight.on('move', () => mapLeft.setView(mapRight.getCenter(), mapRight.getZoom(), {animate: false}));
 
-        // ==========================================
-        // --- LOGIQUE PAGE 3 : INTERACTIVE DATA ---
-        // ==========================================
-        
+        // --- PAGE 3 LOGIC ---
         var mapViz = L.map('map-viz', { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: true }).setView([43.1026, 2.4140], 9);
-        
         var audeLayer;
         fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
             .then(res => res.json())
@@ -409,76 +423,25 @@
                 }).addTo(mapViz);
             });
 
-        // DATA + KPI
         const communeData = {
-            'global': { 
-                coords: [43.1026, 2.4140], zoom: 9, title: "Aude Global", 
-                surface: "6 139", index: "3.45",
-                oso: { w: 1.1, f: 37.6, c: 40.9, a: 5.5 },
-                clc: { w: 0.7, f: 35.0, c: 50.0, a: 7.0 }
-            },
-            'carcassonne': { 
-                coords: [43.2121, 2.3537], zoom: 12, title: "Carcassonne",
-                surface: "65", index: "2.10",
-                oso: { w: 2.5, f: 15.0, c: 30.0, a: 45.0 }, 
-                clc: { w: 2.0, f: 12.0, c: 35.0, a: 40.0 }
-            },
-            'narbonne': { 
-                coords: [43.1837, 3.0042], zoom: 12, title: "Narbonne",
-                surface: "172", index: "2.80",
-                oso: { w: 8.0, f: 20.0, c: 35.0, a: 30.0 }, 
-                clc: { w: 7.5, f: 22.0, c: 38.0, a: 28.0 }
-            },
-            'castelnaudary': { 
-                coords: [43.3175, 1.9540], zoom: 13, title: "Castelnaudary",
-                surface: "47", index: "3.90",
-                oso: { w: 3.0, f: 5.0, c: 70.0, a: 15.0 }, 
-                clc: { w: 2.8, f: 4.0, c: 75.0, a: 12.0 }
-            },
-            'limoux': { 
-                coords: [43.0537, 2.2173], zoom: 13, title: "Limoux",
-                surface: "32", index: "3.10",
-                oso: { w: 1.5, f: 40.0, c: 40.0, a: 10.0 }, 
-                clc: { w: 1.2, f: 38.0, c: 45.0, a: 11.0 }
-            },
-            'gruissan': { 
-                coords: [43.1070, 3.0880], zoom: 12, title: "Gruissan",
-                surface: "43", index: "3.80",
-                oso: { w: 40.0, f: 20.0, c: 5.0, a: 20.0 }, 
-                clc: { w: 38.0, f: 22.0, c: 6.0, a: 22.0 }
-            }
+            'global': { coords: [43.1026, 2.4140], zoom: 9, title: "Aude Global", surface: "6 139", index: "3.45", oso: { w: 1.1, f: 37.6, c: 40.9, a: 5.5 }, clc: { w: 0.7, f: 35.0, c: 50.0, a: 7.0 } },
+            'carcassonne': { coords: [43.2121, 2.3537], zoom: 12, title: "Carcassonne", surface: "65", index: "2.10", oso: { w: 2.5, f: 15.0, c: 30.0, a: 45.0 }, clc: { w: 2.0, f: 12.0, c: 35.0, a: 40.0 } },
+            'narbonne': { coords: [43.1837, 3.0042], zoom: 12, title: "Narbonne", surface: "172", index: "2.80", oso: { w: 8.0, f: 20.0, c: 35.0, a: 30.0 }, clc: { w: 7.5, f: 22.0, c: 38.0, a: 28.0 } },
+            'castelnaudary': { coords: [43.3175, 1.9540], zoom: 13, title: "Castelnaudary", surface: "47", index: "3.90", oso: { w: 3.0, f: 5.0, c: 70.0, a: 15.0 }, clc: { w: 2.8, f: 4.0, c: 75.0, a: 12.0 } },
+            'limoux': { coords: [43.0537, 2.2173], zoom: 13, title: "Limoux", surface: "32", index: "3.10", oso: { w: 1.5, f: 40.0, c: 40.0, a: 10.0 }, clc: { w: 1.2, f: 38.0, c: 45.0, a: 11.0 } },
+            'gruissan': { coords: [43.1070, 3.0880], zoom: 12, title: "Gruissan", surface: "43", index: "3.80", oso: { w: 40.0, f: 20.0, c: 5.0, a: 20.0 }, clc: { w: 38.0, f: 22.0, c: 6.0, a: 22.0 } }
         };
 
         function updateDashboard(communeKey) {
             const data = communeData[communeKey];
             mapViz.flyTo(data.coords, data.zoom, { duration: 1.5 });
-
-            // Update Textes
             document.getElementById('dynamicTitle').innerText = data.title;
             document.getElementById('locationBadge').innerText = (communeKey === 'global') ? 'Département' : 'Commune';
-
-            // Update KPI
             document.getElementById('kpi-surface').innerText = data.surface;
             document.getElementById('kpi-index').innerText = data.index;
-
-            // Update Bars
-            updateBar('bar1-water', 'val1-water', data.oso.w);
-            updateBar('bar1-forest', 'val1-forest', data.oso.f);
-            updateBar('bar1-crop', 'val1-crop', data.oso.c);
-            updateBar('bar1-artif', 'val1-artif', data.oso.a);
-
-            updateBar('bar2-water', 'val2-water', data.clc.w);
-            updateBar('bar2-forest', 'val2-forest', data.clc.f);
-            updateBar('bar2-crop', 'val2-crop', data.clc.c);
-            updateBar('bar2-artif', 'val2-artif', data.clc.a);
-            
-            if(audeLayer) {
-                if(communeKey !== 'global') {
-                     audeLayer.setStyle({ fillOpacity: 0.05, color: '#ccc' });
-                } else {
-                     audeLayer.setStyle({ fillOpacity: 0.2, color: '#E89C48' });
-                }
-            }
+            updateBar('bar1-water', 'val1-water', data.oso.w); updateBar('bar1-forest', 'val1-forest', data.oso.f); updateBar('bar1-crop', 'val1-crop', data.oso.c); updateBar('bar1-artif', 'val1-artif', data.oso.a);
+            updateBar('bar2-water', 'val2-water', data.clc.w); updateBar('bar2-forest', 'val2-forest', data.clc.f); updateBar('bar2-crop', 'val2-crop', data.clc.c); updateBar('bar2-artif', 'val2-artif', data.clc.a);
+            if(audeLayer) { if(communeKey !== 'global') { audeLayer.setStyle({ fillOpacity: 0.05, color: '#ccc' }); } else { audeLayer.setStyle({ fillOpacity: 0.2, color: '#E89C48' }); } }
         }
 
         function updateBar(barId, valId, value) {
@@ -488,22 +451,10 @@
             document.getElementById(valId).innerText = value + '%';
         }
 
-        // LOGIQUE DES FILTRES
         function toggleFilter(type, btn) {
-            if(btn.classList.contains('inactive')) {
-                btn.classList.remove('inactive');
-            } else {
-                btn.classList.add('inactive');
-            }
-
+            if(btn.classList.contains('inactive')) btn.classList.remove('inactive'); else btn.classList.add('inactive');
             const rows = document.querySelectorAll('.row-' + type);
-            rows.forEach(row => {
-                if(btn.classList.contains('inactive')) {
-                    row.classList.add('dimmed');
-                } else {
-                    row.classList.remove('dimmed');
-                }
-            });
+            rows.forEach(row => { if(btn.classList.contains('inactive')) row.classList.add('dimmed'); else row.classList.remove('dimmed'); });
         }
 
         function activateDeck(element) {
@@ -512,7 +463,7 @@
             element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
 
-        // --- NAVIGATION ---
+        // --- NAVIGATION & SCROLL ---
         window.addEventListener('scroll', () => {
             const sections = document.querySelectorAll('.page-section');
             const dots = document.querySelectorAll('.dot');
@@ -527,6 +478,7 @@
                 if (current === 'page1' && index === 0) dot.classList.add('active');
                 if (current === 'page2' && index === 1) dot.classList.add('active');
                 if (current === 'page3' && index === 2) dot.classList.add('active');
+                if (current === 'page4' && index === 3) dot.classList.add('active'); // Nouveau dot
             });
             if(current === 'page2') { mapLeft.invalidateSize(); mapRight.invalidateSize(); }
             if(current === 'page3') { mapViz.invalidateSize(); }
