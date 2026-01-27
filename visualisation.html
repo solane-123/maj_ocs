@@ -14,19 +14,20 @@
         /* --- CHARTE GRAPHIQUE --- */
         :root {
             --bg-main: #FFFEFA;        
-            --color-vivid: #E89C48;    /* Orange Abricot Vif (Thème) */
+            --color-vivid: #E89C48;    /* Orange Abricot Vif */
             --color-dark: #1A3C34;     /* Vert Sombre Profond */
             --text-body: #666666;      
             
-            /* COULEURS DES CLASSES (Pour la Dataviz) */
-            --c-artif: #D64541;    /* Rouge */
-            --c-agri: #F2CA27;     /* Jaune Miel */
-            --c-nature: #88C425;   /* Vert Vif */
+            /* COULEURS DES CLASSES */
+            --c-artif: #D64541;    
+            --c-agri: #F2CA27;     
+            --c-nature: #88C425;   
+            --c-water: #4A90E2;    
         }
 
-        body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', sans-serif; background-color: var(--bg-main); color: var(--text-body); }
+        body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', sans-serif; background-color: var(--bg-main); color: var(--text-body); overflow-x: hidden; }
         
-        /* --- SIDEBAR & NAV (INCHANGÉS) --- */
+        /* --- SIDEBAR & NAV --- */
         .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 80px; background-color: #FFFFFF; box-shadow: 5px 0 25px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
         .scroll-indicators { display: flex; flex-direction: column; gap: 25px; }
         .dot { width: 6px; height: 6px; background-color: #DDDDDD; border-radius: 50%; cursor: pointer; transition: all 0.4s ease; }
@@ -45,16 +46,13 @@
         .subtitle { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-vivid); font-weight: 700; margin-bottom: 20px; display: inline-block; border-bottom: 1px solid rgba(232, 156, 72, 0.3); padding-bottom: 5px; }
         p.description-text { font-size: 1.1rem; line-height: 1.8; color: #555; font-weight: 400; max-width: 600px; margin: 0; }
 
-        /* --- PAGE 1 & 2 (STYLES) --- */
+        /* --- PAGE 1 & 2 --- */
         .p1-content { width: 55%; padding: 8%; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
         .p1-map-container { width: 45%; background-color: #F8F9FA; border-left: 1px solid rgba(0,0,0,0.03); position: relative; }
         #map-home { height: 100vh; position: sticky; top: 0; }
         .kpi-section { margin-top: 50px; }
         .big-number { font-family: 'Playfair Display', serif; font-size: 6rem; font-weight: 700; color: var(--color-dark); line-height: 1; display: flex; align-items: baseline; }
         .big-number span { font-family: 'DM Sans', sans-serif; font-size: 2rem; color: var(--color-vivid); font-weight: 700; margin-left: 15px; }
-        .secondary-stats { display: flex; gap: 50px; margin-top: 30px; }
-        .stat-item strong { display: block; font-family: 'DM Sans', sans-serif; font-size: 1.5rem; color: var(--color-dark); font-weight: 700; }
-        .stat-item span { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
         
         .compare-maps-wrapper { width: 45%; height: 100vh; position: sticky; top: 0; border-left: 1px solid #eee; }
         .compare-maps-container { height: 100%; width: 100%; display: flex; background: #eee; }
@@ -66,154 +64,200 @@
         .color-dot { width: 12px; height: 12px; border-radius: 3px; }
 
         /* =================================================================
-           --- CSS PAGE 3 : DATAVIZ (CARTES SUPERPOSÉES) --- 
+           --- CSS PAGE 3 : LIGHT MODE & DECK --- 
            ================================================================= */
         
-        /* Layout : Carte à Gauche (40%), Données à Droite (60%) */
-        .p3-map-wrapper {
-            width: 40%;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            background-color: var(--bg-main); /* Pas de fond gris, fond page */
-            /* Ombre portée légère à droite pour détacher la carte du texte */
-            box-shadow: inset -10px 0 20px -10px rgba(0,0,0,0.05);
+        /* Fond Clair pour la section 3 */
+        #page3 {
+            background-color: var(--bg-main); /* Fond clair */
+            color: var(--text-body);
+            overflow: hidden; 
         }
-        #map-viz { width: 100%; height: 100%; }
 
-        .p3-data-wrapper {
-            width: 60%;
-            padding: 6% 8%;
-            box-sizing: border-box;
-            background-color: var(--bg-main);
-            min-height: 100vh;
+        .p3-layout {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* --- COLONNE GAUCHE : CARTE --- */
+        .p3-map-area {
+            width: 35%;
+            height: 100%;
+            position: relative;
+            background: #F8F9FA; /* Fond très léger pour la carte */
+            border-right: 1px solid #eee;
+        }
+        #map-viz { 
+            width: 100%; 
+            height: 100%; 
+            /* Pas de filtre sombre ici */
+        }
+        
+        /* Légende flottante Claire */
+        .map-legend-float {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            z-index: 1000;
+            color: var(--color-dark);
+            font-size: 0.8rem;
+        }
+        .map-legend-float h4 { margin: 0 0 10px 0; color: var(--color-dark); font-family: 'Playfair Display'; font-weight:700; }
+        .dl-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .dl-color { width: 15px; height: 10px; border-radius: 2px; }
+
+
+        /* --- COLONNE DROITE : DECK DE CARTES --- */
+        .p3-deck-area {
+            width: 65%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
-        }
-
-        /* --- SYSTÈME DE CARTES SUPERPOSÉES (STACK) --- */
-        .cards-container {
-            margin-top: 50px;
-            position: relative;
-            min-height: 400px;
-        }
-
-        /* La carte (Le Tableau) */
-        .data-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.08); /* Ombre douce */
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            border: 1px solid rgba(0,0,0,0.05);
+            padding-left: 50px; 
+            box-sizing: border-box;
             position: relative;
             overflow: hidden;
         }
 
-        /* Style quand la carte est fermée (Superposition) */
-        .data-card.collapsed {
-            height: 80px; /* Juste le titre visible */
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .p3-header-text {
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 20;
         }
-        .data-card.collapsed:hover {
-            transform: scale(1.02);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-        }
-
-        /* Couleur de la bordure gauche pour identifier la catégorie */
-        .data-card.agri { border-left: 8px solid var(--c-agri); }
-        .data-card.nature { border-left: 8px solid var(--c-nature); }
-        .data-card.artif { border-left: 8px solid var(--c-artif); }
-
-        /* Style quand la carte est ouverte (Déroulée) */
-        .data-card.expanded {
-            /* Prend plus de place, les autres se poussent */
-            height: auto;
-            cursor: default;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            transform: scale(1.02);
-            z-index: 10;
-        }
-
-        /* En-tête de la carte */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-        .card-title {
-            font-family: 'Playfair Display';
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-dark);
-        }
-        .card-percent {
-            font-family: 'DM Sans';
-            font-size: 2rem;
-            font-weight: 700;
-            opacity: 0.2; /* Discret quand fermé */
-        }
-        .data-card.expanded .card-percent {
-            opacity: 1;
-            color: var(--color-vivid); /* Vif quand ouvert */
-        }
-
-        /* Contenu caché (Le Détail) */
-        .card-content {
-            display: none; /* Caché par défaut */
-            margin-top: 40px;
-            animation: fadeIn 0.5s ease forwards;
-        }
-        .data-card.expanded .card-content {
-            display: block; /* Visible quand ouvert */
-        }
-
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
-        /* --- STYLE DU DÉTAIL (COMME VOTRE CAPTURE 12) --- */
-        .detail-row {
-            margin-bottom: 25px;
-        }
+        /* Titres en couleur foncée car fond clair */
+        .p3-header-text h2 { color: var(--color-dark); text-shadow: none; }
         
-        .detail-info {
+        /* CONTENEUR DES CARTES (Le Deck) */
+        .deck-container {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+            align-items: center;
+            height: 500px;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        /* LA CARTE INDIVIDUELLE (Style Clair) */
+        .deck-card {
+            width: 280px; 
+            height: 420px;
+            background: #FFFFFF; /* Fond blanc */
+            border-radius: 12px;
+            border: 1px solid #eee;
+            /* Ombre plus douce pour le mode clair */
+            box-shadow: -5px 0 25px rgba(0,0,0,0.08); 
+            
+            margin-right: -180px; /* Chevauchement */
+            
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Headers */
+        .deck-header {
+            padding: 25px;
+            border-bottom: 1px solid #f0f0f0;
+            background: linear-gradient(to bottom, #fff, #fbfbfb);
+        }
+        .deck-title {
+            color: var(--color-dark);
+            font-family: 'DM Sans';
             font-weight: 700;
-            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            white-space: nowrap;
+        }
+        .deck-sub {
+            color: #999;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        /* Barre de progression */
-        .progress-track {
-            width: 100%;
-            height: 8px;
-            background-color: #eee;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            width: 0%; /* Animé en JS */
-            transition: width 1s ease 0.2s; /* Délai pour l'effet */
+        /* ETAT ACTIF / ÉTALÉ */
+        .deck-card.active {
+            width: 650px; 
+            margin-right: 20px; 
+            z-index: 50; 
+            transform: scale(1.02); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            border-color: var(--color-vivid);
+            cursor: default;
         }
 
-        /* Icône + Titre */
-        .row-header { display: flex; align-items: center; gap: 15px; }
-        .row-icon { 
-            width: 30px; height: 30px; 
-            background: #eee; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; 
+        /* CONTENU DU GRAPHIQUE */
+        .chart-content {
+            flex: 1;
+            padding: 30px;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px; 
+        }
+        .deck-card.active .chart-content {
+            opacity: 1;
+        }
+
+        /* Style des Barres (Adapté fond clair) */
+        .chart-row {
+            display: flex;
+            align-items: center;
+            height: 35px;
+        }
+        
+        .chart-label {
+            width: 100px;
+            color: #666; /* Gris foncé */
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: right;
+            padding-right: 15px;
+        }
+
+        .chart-bar-bg {
+            flex: 1;
+            height: 24px;
+            background: #f0f0f0; /* Fond barre gris très clair */
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+            width: 0%; 
+            transition: width 1s ease-out;
+            /* Ombre portée légère sur la barre colorée */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+        }
+
+        .chart-value {
+            width: 60px;
+            padding-left: 15px;
+            color: var(--color-dark);
+            font-weight: 700;
+            font-size: 0.9rem;
         }
 
     </style>
@@ -275,113 +319,119 @@
 
         <section class="page-section" id="page3">
             
-            <div class="p3-map-wrapper">
-                <div id="map-viz"></div>
-            </div>
+            <div class="p3-layout">
+                <div class="p3-map-area">
+                    <div id="map-viz"></div>
+                    <div class="map-legend-float">
+                        <h4>Occupation</h4>
+                        <div class="dl-item"><div class="dl-color" style="background:var(--c-water)"></div> Water</div>
+                        <div class="dl-item"><div class="dl-color" style="background:var(--c-nature)"></div> Forest</div>
+                        <div class="dl-item"><div class="dl-color" style="background:#A67B5B"></div> Cropland</div>
+                        <div class="dl-item"><div class="dl-color" style="background:var(--c-artif)"></div> Artificial</div>
+                    </div>
+                </div>
 
-            <div class="p3-data-wrapper">
-                
-                <div class="subtitle">Répartition Détaillée</div>
-                <h2 style="margin-top:10px;">Occupation<br>du sol.</h2>
-                <p class="description-text">
-                    Cliquez sur une catégorie pour dérouler les détails.
-                </p>
-
-                <div class="cards-container">
-                    
-                    <div class="data-card agri collapsed" onclick="toggleCard(this, 'agri')">
-                        <div class="card-header">
-                            <span class="card-title">Espaces Agricoles</span>
-                            <span class="card-percent">48%</span>
-                        </div>
-                        
-                        <div class="card-content">
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🌾</span> Cultures céréalières</div>
-                                    <span>55%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:55%; background:var(--c-agri);"></div></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🍇</span> Vignes (AOC)</div>
-                                    <span>35%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:35%; background:var(--c-agri);"></div></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🍎</span> Vergers & Autres</div>
-                                    <span>10%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:10%; background:var(--c-agri);"></div></div>
-                            </div>
-                        </div>
+                <div class="p3-deck-area">
+                    <div class="p3-header-text">
+                        <div class="subtitle">Statistiques Comparées</div>
+                        <h2>Répartition<br>Par Source.</h2>
                     </div>
 
-                    <div class="data-card nature collapsed" onclick="toggleCard(this, 'nature')">
-                        <div class="card-header">
-                            <span class="card-title">Milieux Naturels</span>
-                            <span class="card-percent">36%</span>
-                        </div>
+                    <div class="deck-container">
                         
-                        <div class="card-content">
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🌳</span> Forêts de Feuillus</div>
-                                    <span>40%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:40%; background:var(--c-nature);"></div></div>
+                        <div class="deck-card active" onclick="activateDeck(this)">
+                            <div class="deck-header">
+                                <div class="deck-title">Aude, France, 2019</div>
+                                <div class="deck-sub">Source : OSO</div>
                             </div>
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🌲</span> Conifères</div>
-                                    <span>30%</span>
+                            <div class="chart-content">
+                                <div class="chart-row">
+                                    <div class="chart-label">Water</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:1.08%; background:var(--c-water);"></div></div>
+                                    <div class="chart-value">1.08</div>
                                 </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:30%; background:var(--c-nature);"></div></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🌿</span> Garrigues</div>
-                                    <span>30%</span>
+                                <div class="chart-row">
+                                    <div class="chart-label">Forest</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:37.6%; background:var(--c-nature);"></div></div>
+                                    <div class="chart-value">37.60</div>
                                 </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:30%; background:var(--c-nature);"></div></div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Cropland</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:40.9%; background:#A67B5B;"></div></div>
+                                    <div class="chart-value">40.96</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Artificial</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:5.48%; background:var(--c-artif);"></div></div>
+                                    <div class="chart-value">5.48</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Grassland</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:11.3%; background:#8CD790;"></div></div>
+                                    <div class="chart-value">11.33</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="data-card artif collapsed" onclick="toggleCard(this, 'artif')">
-                        <div class="card-header">
-                            <span class="card-title">Zones Artificialisées</span>
-                            <span class="card-percent">12%</span>
+                        <div class="deck-card" onclick="activateDeck(this)">
+                            <div class="deck-header">
+                                <div class="deck-title">Aude, France, 2019</div>
+                                <div class="deck-sub">Source 1 : CLC</div>
+                            </div>
+                            <div class="chart-content">
+                                <div class="chart-row">
+                                    <div class="chart-label">Water</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:0.7%; background:var(--c-water);"></div></div>
+                                    <div class="chart-value">0.70</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Forest</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:35%; background:var(--c-nature);"></div></div>
+                                    <div class="chart-value">35.00</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Cropland</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:50%; background:#A67B5B;"></div></div>
+                                    <div class="chart-value">50.00</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Artificial</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:7%; background:var(--c-artif);"></div></div>
+                                    <div class="chart-value">7.00</div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="card-content">
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🏠</span> Habitat Résidentiel</div>
-                                    <span>60%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:60%; background:var(--c-artif);"></div></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🏭</span> Zones Industrielles</div>
-                                    <span>25%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:25%; background:var(--c-artif);"></div></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-info">
-                                    <div class="row-header"><span class="row-icon">🛣️</span> Réseaux Routiers</div>
-                                    <span>15%</span>
-                                </div>
-                                <div class="progress-track"><div class="progress-fill" style="width:15%; background:var(--c-artif);"></div></div>
-                            </div>
-                        </div>
-                    </div>
 
+                        <div class="deck-card" onclick="activateDeck(this)">
+                            <div class="deck-header">
+                                <div class="deck-title">Aude, France, 2019</div>
+                                <div class="deck-sub">Source 2 : SAT</div>
+                            </div>
+                            <div class="chart-content">
+                                <div class="chart-row">
+                                    <div class="chart-label">Water</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:1.12%; background:var(--c-water);"></div></div>
+                                    <div class="chart-value">1.12</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Forest</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:33.5%; background:var(--c-nature);"></div></div>
+                                    <div class="chart-value">33.49</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Cropland</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:58.3%; background:#A67B5B;"></div></div>
+                                    <div class="chart-value">58.33</div>
+                                </div>
+                                <div class="chart-row">
+                                    <div class="chart-label">Artificial</div>
+                                    <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:4.73%; background:var(--c-artif);"></div></div>
+                                    <div class="chart-value">4.73</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </section>
@@ -391,7 +441,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- DONNÉES P1 & P2 (INCHANGÉ) ---
+        // --- DONNÉES P1 & P2 ---
         const data_2023={"95":{classe:"ARTIFICIALISE",val:"53%",color:"#D64541"},"96":{classe:"ARTIFICIALISE",val:"100%",color:"#D64541"},"97":{classe:"AGRICULTURE",val:"86%",color:"#F2CA27"},"98":{classe:"AGRICULTURE",val:"95%",color:"#F2CA27"},"99":{classe:"ARTIFICIALISE",val:"47%",color:"#D64541"}};
         const data_2024={"95":{classe:"NATURE",val:"68.5%",color:"#88C425"},"96":{classe:"ARTIFICIALISE",val:"78.5%",color:"#D64541"},"97":{classe:"ARTIFICIALISE",val:"86.6%",color:"#D64541"},"98":{classe:"ARTIFICIALISE",val:"83.6%",color:"#D64541"},"99":{classe:"ARTIFICIALISE",val:"73%",color:"#D64541"}};
         const parcelles=[{id:"95",coords:[[43.2865,1.9280],[43.2875,1.9290],[43.2868,1.9300],[43.2858,1.9290]]},{id:"96",coords:[[43.2875,1.9290],[43.2880,1.9295],[43.2872,1.9305],[43.2868,1.9300]]},{id:"97",coords:[[43.2858,1.9290],[43.2868,1.9300],[43.2860,1.9310],[43.2850,1.9300]]},{id:"98",coords:[[43.2850,1.9300],[43.2860,1.9310],[43.2855,1.9320],[43.2845,1.9310]]},{id:"99",coords:[[43.2868,1.9300],[43.2872,1.9305],[43.2865,1.9315],[43.2860,1.9310]]}];
@@ -414,54 +464,37 @@
         mapRight.on('move', () => mapLeft.setView(mapRight.getCenter(), mapRight.getZoom(), {animate: false}));
 
         // ==========================================
-        // --- LOGIQUE PAGE 3 : CARTE & DATAVIZ ---
+        // --- LOGIQUE PAGE 3 : LIGHT MAP & DECK ---
         // ==========================================
         
-        // 1. CARTE SANS FOND (Juste le département)
+        // 1. CARTE (Style Clair)
         var mapViz = L.map('map-viz', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false }).setView([43.1026, 2.4140], 9);
         
-        // Pas de L.tileLayer ici ! (Carte flottante)
-        
-        // On remet le département en orange (comme P1)
-        var audeLayerViz;
+        // Fond CLAIR (CartoDB Light)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            opacity: 0.8
+        }).addTo(mapViz);
+
+        // Aude en couleur vive
         fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
             .then(res => res.json())
             .then(data => {
-                audeLayerViz = L.geoJSON(data, {
-                    style: { color: '#E89C48', weight: 2, fillColor: '#E89C48', fillOpacity: 0.5 }
+                L.geoJSON(data, {
+                    style: { color: '#E89C48', weight: 2, fillColor: '#E89C48', fillOpacity: 0.6 }
                 }).addTo(mapViz);
             });
 
-        // 2. INTERACTION "ACCORDÉON" (Déroulement)
-        function toggleCard(element, type) {
-            // Si déjà ouvert, on le ferme
-            if (element.classList.contains('expanded')) {
-                element.classList.remove('expanded');
-                element.classList.add('collapsed');
-                // Reset couleur carte
-                if(audeLayerViz) audeLayerViz.setStyle({fillColor: '#E89C48', color: '#E89C48'});
-                return;
-            }
-
-            // Sinon, on ferme les autres
-            document.querySelectorAll('.data-card').forEach(card => {
-                card.classList.remove('expanded');
-                card.classList.add('collapsed');
+        // 2. LOGIQUE DU DECK (Chevauchement & Déroulement)
+        function activateDeck(element) {
+            // Retirer 'active' de tout le monde
+            document.querySelectorAll('.deck-card').forEach(card => {
+                card.classList.remove('active');
             });
-
-            // Et on ouvre celui-là
-            element.classList.remove('collapsed');
-            element.classList.add('expanded');
-
-            // Mise à jour couleur carte P3 selon le thème
-            let newColor = '#E89C48';
-            if(type === 'agri') newColor = '#F2CA27';
-            if(type === 'nature') newColor = '#88C425';
-            if(type === 'artif') newColor = '#D64541';
             
-            if(audeLayerViz) audeLayerViz.setStyle({fillColor: newColor, color: newColor});
+            // Activer la carte cliquée
+            element.classList.add('active');
         }
-
 
         // --- NAVIGATION DOTS ---
         window.addEventListener('scroll', () => {
