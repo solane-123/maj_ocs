@@ -14,8 +14,9 @@
         /* --- CHARTE GRAPHIQUE --- */
         :root {
             --bg-main: #FFFEFA;        
-            --color-vivid: #E89C48;    /* Orange Abricot Vif */
-            --color-dark: #1A3C34;     /* Vert Sombre Profond */
+            --color-vivid: #E89C48;    /* Orange Abricot */
+            --color-dark: #1A3C34;     /* Vert Sombre */
+            --color-accent: #00B2E3;   /* Bleu cyan (pour la barre KPI) */
             --text-body: #666666;      
             
             /* COULEURS DATAVIZ */
@@ -27,7 +28,7 @@
 
         body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', sans-serif; background-color: var(--bg-main); color: var(--text-body); overflow-x: hidden; }
         
-        /* --- SIDEBAR & NAV --- */
+        /* --- SIDEBAR & NAV (INCHANGÉ) --- */
         .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 80px; background-color: #FFFFFF; box-shadow: 5px 0 25px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
         .scroll-indicators { display: flex; flex-direction: column; gap: 25px; }
         .dot { width: 6px; height: 6px; background-color: #DDDDDD; border-radius: 50%; cursor: pointer; transition: all 0.4s ease; }
@@ -46,14 +47,13 @@
         .subtitle { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-vivid); font-weight: 700; margin-bottom: 20px; display: inline-block; border-bottom: 1px solid rgba(232, 156, 72, 0.3); padding-bottom: 5px; }
         p.description-text { font-size: 1.1rem; line-height: 1.8; color: #555; font-weight: 400; max-width: 600px; margin: 0; }
 
-        /* --- PAGE 1 & 2 --- */
+        /* --- PAGE 1 & 2 (INCHANGÉS) --- */
         .p1-content { width: 55%; padding: 8%; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
         .p1-map-container { width: 45%; background-color: #F8F9FA; border-left: 1px solid rgba(0,0,0,0.03); position: relative; }
         #map-home { height: 100vh; position: sticky; top: 0; }
         .kpi-section { margin-top: 50px; }
         .big-number { font-family: 'Playfair Display', serif; font-size: 6rem; font-weight: 700; color: var(--color-dark); line-height: 1; display: flex; align-items: baseline; }
         .big-number span { font-family: 'DM Sans', sans-serif; font-size: 2rem; color: var(--color-vivid); font-weight: 700; margin-left: 15px; }
-        
         .compare-maps-wrapper { width: 45%; height: 100vh; position: sticky; top: 0; border-left: 1px solid #eee; }
         .compare-maps-container { height: 100%; width: 100%; display: flex; background: #eee; }
         .map-split { width: 50%; height: 100%; position: relative; border-right: 2px solid #fff; }
@@ -64,180 +64,126 @@
         .color-dot { width: 12px; height: 12px; border-radius: 3px; }
 
         /* =================================================================
-           --- CSS PAGE 3 : INTERFACE STYLE "APP" (CORRIGÉ) --- 
+           --- CSS PAGE 3 : DASHBOARD COMPLET --- 
            ================================================================= */
         
-        #page3 {
-            background-color: var(--bg-main);
-            color: var(--text-body);
-            overflow: hidden; 
-        }
-
+        #page3 { background-color: var(--bg-main); color: var(--text-body); overflow: hidden; }
         .p3-layout { display: flex; width: 100%; height: 100vh; }
 
         /* --- COLONNE GAUCHE : CARTE --- */
         .p3-map-area {
-            width: 35%;
-            height: 100%;
-            position: relative;
-            background: #FFFEFA;
-            border-right: 1px solid #eee;
-            z-index: 5; /* Assure que la carte reste en dessous du deck si besoin */
+            width: 35%; height: 100%; position: relative;
+            background: #FFFEFA; border-right: 1px solid #eee; z-index: 5;
         }
-        #map-viz { 
-            width: 100%; height: 100%; background: transparent; 
-        }
+        #map-viz { width: 100%; height: 100%; background: transparent; }
         
-        /* Menu Déroulant */
+        /* Selecteur Flottant */
         .map-selector {
-            position: absolute;
-            top: 30px;
-            left: 20px;
-            z-index: 1000;
-            width: 280px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 5px;
-            border: 1px solid #eee;
+            position: absolute; top: 30px; left: 20px; z-index: 1000;
+            width: 280px; background: #fff; border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 5px; border: 1px solid #eee;
         }
         .map-selector select {
-            width: 100%;
-            border: none;
-            padding: 12px 15px;
-            font-family: 'DM Sans';
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--color-dark);
-            background: #fff;
-            outline: none;
-            cursor: pointer;
+            width: 100%; border: none; padding: 12px 15px;
+            font-family: 'DM Sans'; font-size: 0.95rem; font-weight: 600;
+            color: var(--color-dark); background: #fff; outline: none; cursor: pointer;
             appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231A3C34%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px top 50%;
-            background-size: 10px auto;
+            background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 10px auto;
         }
 
-        /* Légende flottante */
-        .map-legend-float {
-            position: absolute;
-            bottom: 30px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            z-index: 1000;
-            color: var(--color-dark);
-            font-size: 0.8rem;
-        }
-        .map-legend-float h4 { margin: 0 0 10px 0; font-family: 'Playfair Display'; font-weight:700; }
-        .dl-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-        .dl-color { width: 15px; height: 10px; border-radius: 2px; }
-
-        /* --- COLONNE DROITE : DECK --- */
+        /* --- COLONNE DROITE : DATAS --- */
         .p3-deck-area {
-            width: 65%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-left: 50px; 
-            box-sizing: border-box;
+            width: 65%; height: 100%; display: flex; flex-direction: column;
+            justify-content: center; padding-left: 50px; box-sizing: border-box;
             position: relative;
-            /* overflow: hidden;  <-- RETIRÉ pour permettre le scroll du conteneur enfant */
         }
 
-        .p3-header-text { margin-bottom: 40px; z-index: 20; }
-        .p3-header-text h2 { color: var(--color-dark); margin: 10px 0; }
+        .p3-header-text { margin-bottom: 20px; z-index: 20; }
         .location-badge {
-            background: var(--color-vivid);
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-            margin-bottom: 10px;
-            transition: all 0.3s;
+            background: var(--color-vivid); color: #fff; padding: 5px 12px;
+            border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 10px;
         }
+        .p3-header-text h2 { margin: 5px 0 10px 0; font-size: 2.5rem; }
 
-        /* CONTENEUR DES CARTES (Le Deck) - MODIFIÉ POUR SCROLL */
-        .deck-container {
-            display: flex;
-            align-items: center;
-            height: 550px; /* Un peu plus de hauteur pour l'ombre et le hover */
-            padding: 20px 0;
-            position: relative;
-            
-            /* AJOUT DU SCROLL HORIZONTAL */
-            overflow-x: auto; /* Scroll si ça dépasse */
-            overflow-y: visible; /* Laisser les ombres visibles */
-            width: 100%;
-            padding-right: 50px; /* Espace à la fin du scroll */
-            
-            /* Masquer la barre de scroll disgracieuse sur Chrome/Safari tout en gardant la fonction */
-            scrollbar-width: thin; 
-            scrollbar-color: #ddd transparent;
+        /* --- KPIS STATS (NOUVEAU) --- */
+        .kpi-row {
+            display: flex; gap: 40px; margin-bottom: 30px;
+        }
+        .kpi-box {
+            border-left: 4px solid var(--color-accent);
+            padding-left: 15px;
+        }
+        .kpi-value {
+            font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 2.5rem;
+            color: #222; line-height: 1;
+        }
+        .kpi-label {
+            font-size: 0.85rem; font-weight: 700; color: #888;
+            text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;
         }
         
-        /* Pour Webkit (Chrome/Safari) : scrollbar discrète */
+        /* --- FILTRES / LÉGENDE INTERACTIVE (NOUVEAU) --- */
+        .filter-container {
+            margin-bottom: 25px;
+            display: flex; align-items: center; gap: 15px;
+            background: #fff; padding: 15px 20px; border-radius: 12px;
+            border: 1px solid #eee; width: fit-content;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        .filter-title {
+            font-size: 0.8rem; font-weight: 700; color: var(--color-dark);
+            text-transform: uppercase; margin-right: 10px;
+        }
+        .filter-btn {
+            border: none; padding: 8px 16px; border-radius: 6px;
+            font-family: 'DM Sans'; font-size: 0.85rem; font-weight: 700; color: #fff;
+            cursor: pointer; transition: all 0.2s; opacity: 1; transform: scale(1);
+        }
+        .filter-btn:hover { transform: scale(1.05); }
+        .filter-btn.inactive { opacity: 0.2; transform: scale(0.95); }
+
+        /* --- DECK CONTAINER (SCROLLABLE) --- */
+        .deck-container {
+            display: flex; align-items: center; height: 500px;
+            padding: 20px 0; position: relative;
+            overflow-x: auto; overflow-y: visible; width: 100%; padding-right: 50px;
+            scrollbar-width: thin; scrollbar-color: #ddd transparent;
+        }
         .deck-container::-webkit-scrollbar { height: 6px; }
-        .deck-container::-webkit-scrollbar-track { background: transparent; }
         .deck-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.1); border-radius: 10px; }
 
-        /* LA CARTE INDIVIDUELLE */
+        /* CARTE INDIVIDUELLE */
         .deck-card {
-            min-width: 280px; /* Utilisation de min-width pour éviter l'écrasement */
-            width: 280px; 
-            height: 420px;
-            background: #FFFFFF; 
-            border-radius: 12px;
-            border: 1px solid #eee;
+            min-width: 280px; width: 280px; height: 420px;
+            background: #FFFFFF; border-radius: 12px; border: 1px solid #eee;
             box-shadow: -5px 0 25px rgba(0,0,0,0.08); 
-            margin-right: -180px; /* Chevauchement */
-            position: relative;
+            margin-right: -180px; position: relative;
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 1;
+            cursor: pointer; display: flex; flex-direction: column; overflow: hidden; z-index: 1;
         }
 
         .deck-header { padding: 25px; border-bottom: 1px solid #f0f0f0; background: linear-gradient(to bottom, #fff, #fbfbfb); }
         .deck-title { color: var(--color-dark); font-family: 'DM Sans'; font-weight: 700; font-size: 1.1rem; margin-bottom: 5px; white-space: nowrap; }
         .deck-sub { color: #999; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* CARTE ACTIVE - MODIFIÉE (Moins large) */
         .deck-card.active {
-            min-width: 520px; /* Réduit de 650px à 520px */
-            width: 520px; 
-            margin-right: 30px; /* Un peu plus d'espace après */
-            z-index: 50; 
-            transform: scale(1.02); 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); /* Ombre plus marquée */
-            border-color: var(--color-vivid);
-            cursor: default;
+            min-width: 520px; width: 520px; margin-right: 30px; 
+            z-index: 50; transform: scale(1.02); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); border-color: var(--color-vivid); cursor: default;
         }
 
         .chart-content {
-            flex: 1;
-            padding: 30px;
-            opacity: 0;
-            transition: opacity 0.3s ease 0.2s;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 15px; 
+            flex: 1; padding: 30px; opacity: 0; transition: opacity 0.3s ease 0.2s;
+            display: flex; flex-direction: column; justify-content: center; gap: 15px; 
         }
         .deck-card.active .chart-content { opacity: 1; }
 
-        .chart-row { display: flex; align-items: center; height: 35px; }
+        /* CHART ROWS & FILTER LOGIC */
+        .chart-row { display: flex; align-items: center; height: 35px; transition: opacity 0.3s; }
+        .chart-row.dimmed { opacity: 0.1; } /* Classe pour griser */
+        
         .chart-label { width: 90px; color: #666; font-size: 0.85rem; font-weight: 600; text-align: right; padding-right: 15px; }
         .chart-bar-bg { flex: 1; height: 24px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
         .chart-bar-fill {
@@ -308,7 +254,6 @@
             
             <div class="p3-layout">
                 <div class="p3-map-area">
-                    
                     <div class="map-selector">
                         <select id="communeSelect" onchange="updateDashboard(this.value)">
                             <option value="global">Tout le département (Vue d'ensemble)</option>
@@ -319,23 +264,33 @@
                             <option value="gruissan">Gruissan (Littoral)</option>
                         </select>
                     </div>
-
                     <div id="map-viz"></div>
-                    
-                    <div class="map-legend-float">
-                        <h4>Légende</h4>
-                        <div class="dl-item"><div class="dl-color" style="background:var(--c-water)"></div> Eau</div>
-                        <div class="dl-item"><div class="dl-color" style="background:var(--c-nature)"></div> Forêt</div>
-                        <div class="dl-item"><div class="dl-color" style="background:#A67B5B"></div> Culture</div>
-                        <div class="dl-item"><div class="dl-color" style="background:var(--c-artif)"></div> Bâti</div>
-                    </div>
                 </div>
 
                 <div class="p3-deck-area">
+                    
                     <div class="p3-header-text">
                         <span id="locationBadge" class="location-badge">Département</span>
                         <h2 id="dynamicTitle">Aude Global</h2>
-                        <div class="subtitle">Analyse Comparée des Sources</div>
+                    </div>
+
+                    <div class="kpi-row">
+                        <div class="kpi-box">
+                            <div id="kpi-surface" class="kpi-value">6 139</div>
+                            <div class="kpi-label">Surface (km²)</div>
+                        </div>
+                        <div class="kpi-box">
+                            <div id="kpi-index" class="kpi-value">3.45</div>
+                            <div class="kpi-label">Indice Moyen / 4</div>
+                        </div>
+                    </div>
+
+                    <div class="filter-container">
+                        <span class="filter-title"><i style="margin-right:5px">▼</i> Afficher :</span>
+                        <button class="filter-btn" style="background:var(--c-water)" onclick="toggleFilter('water', this)">Eau</button>
+                        <button class="filter-btn" style="background:var(--c-nature)" onclick="toggleFilter('forest', this)">Forêt</button>
+                        <button class="filter-btn" style="background:#A67B5B" onclick="toggleFilter('crop', this)">Culture</button>
+                        <button class="filter-btn" style="background:var(--c-artif)" onclick="toggleFilter('artif', this)">Bâti</button>
                     </div>
 
                     <div class="deck-container">
@@ -346,22 +301,22 @@
                                 <div class="deck-sub">Mise à jour : 2023</div>
                             </div>
                             <div class="chart-content">
-                                <div class="chart-row">
+                                <div class="chart-row row-water">
                                     <div class="chart-label">Eau</div>
                                     <div class="chart-bar-bg"><div id="bar1-water" class="chart-bar-fill" style="width:1.08%; background:var(--c-water);"></div></div>
                                     <div id="val1-water" class="chart-value">1.1%</div>
                                 </div>
-                                <div class="chart-row">
+                                <div class="chart-row row-forest">
                                     <div class="chart-label">Forêt</div>
                                     <div class="chart-bar-bg"><div id="bar1-forest" class="chart-bar-fill" style="width:37.6%; background:var(--c-nature);"></div></div>
                                     <div id="val1-forest" class="chart-value">37.6%</div>
                                 </div>
-                                <div class="chart-row">
+                                <div class="chart-row row-crop">
                                     <div class="chart-label">Culture</div>
                                     <div class="chart-bar-bg"><div id="bar1-crop" class="chart-bar-fill" style="width:40.9%; background:#A67B5B;"></div></div>
                                     <div id="val1-crop" class="chart-value">40.9%</div>
                                 </div>
-                                <div class="chart-row">
+                                <div class="chart-row row-artif">
                                     <div class="chart-label">Bâti</div>
                                     <div class="chart-bar-bg"><div id="bar1-artif" class="chart-bar-fill" style="width:5.48%; background:var(--c-artif);"></div></div>
                                     <div id="val1-artif" class="chart-value">5.5%</div>
@@ -375,22 +330,22 @@
                                 <div class="deck-sub">Source : Corine Land Cover</div>
                             </div>
                             <div class="chart-content">
-                                <div class="chart-row">
+                                <div class="chart-row row-water">
                                     <div class="chart-label">Eau</div>
                                     <div class="chart-bar-bg"><div id="bar2-water" class="chart-bar-fill" style="width:0.7%; background:var(--c-water);"></div></div>
                                     <div id="val2-water" class="chart-value">0.7%</div>
                                 </div>
-                                <div class="chart-row">
+                                <div class="chart-row row-forest">
                                     <div class="chart-label">Forêt</div>
                                     <div class="chart-bar-bg"><div id="bar2-forest" class="chart-bar-fill" style="width:35%; background:var(--c-nature);"></div></div>
                                     <div id="val2-forest" class="chart-value">35.0%</div>
                                 </div>
-                                <div class="chart-row">
+                                <div class="chart-row row-crop">
                                     <div class="chart-label">Culture</div>
                                     <div class="chart-bar-bg"><div id="bar2-crop" class="chart-bar-fill" style="width:50%; background:#A67B5B;"></div></div>
                                     <div id="val2-crop" class="chart-value">50.0%</div>
                                 </div>
-                                <div class="chart-row">
+                                <div class="chart-row row-artif">
                                     <div class="chart-label">Bâti</div>
                                     <div class="chart-bar-bg"><div id="bar2-artif" class="chart-bar-fill" style="width:7%; background:var(--c-artif);"></div></div>
                                     <div id="val2-artif" class="chart-value">7.0%</div>
@@ -434,7 +389,6 @@
         // --- LOGIQUE PAGE 3 : INTERACTIVE DATA ---
         // ==========================================
         
-        // 1. CARTE "VIDE" 
         var mapViz = L.map('map-viz', { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: true }).setView([43.1026, 2.4140], 9);
         
         var audeLayer;
@@ -446,55 +400,64 @@
                 }).addTo(mapViz);
             });
 
-        // 2. DONNÉES SIMULÉES
+        // DATA + KPI
         const communeData = {
             'global': { 
                 coords: [43.1026, 2.4140], zoom: 9, title: "Aude Global", 
+                surface: "6 139", index: "3.45",
                 oso: { w: 1.1, f: 37.6, c: 40.9, a: 5.5 },
                 clc: { w: 0.7, f: 35.0, c: 50.0, a: 7.0 }
             },
             'carcassonne': { 
                 coords: [43.2121, 2.3537], zoom: 12, title: "Carcassonne",
+                surface: "65", index: "2.10",
                 oso: { w: 2.5, f: 15.0, c: 30.0, a: 45.0 }, 
                 clc: { w: 2.0, f: 12.0, c: 35.0, a: 40.0 }
             },
             'narbonne': { 
                 coords: [43.1837, 3.0042], zoom: 12, title: "Narbonne",
+                surface: "172", index: "2.80",
                 oso: { w: 8.0, f: 20.0, c: 35.0, a: 30.0 }, 
                 clc: { w: 7.5, f: 22.0, c: 38.0, a: 28.0 }
             },
             'castelnaudary': { 
                 coords: [43.3175, 1.9540], zoom: 13, title: "Castelnaudary",
+                surface: "47", index: "3.90",
                 oso: { w: 3.0, f: 5.0, c: 70.0, a: 15.0 }, 
                 clc: { w: 2.8, f: 4.0, c: 75.0, a: 12.0 }
             },
             'limoux': { 
                 coords: [43.0537, 2.2173], zoom: 13, title: "Limoux",
+                surface: "32", index: "3.10",
                 oso: { w: 1.5, f: 40.0, c: 40.0, a: 10.0 }, 
                 clc: { w: 1.2, f: 38.0, c: 45.0, a: 11.0 }
             },
             'gruissan': { 
                 coords: [43.1070, 3.0880], zoom: 12, title: "Gruissan",
+                surface: "43", index: "3.80",
                 oso: { w: 40.0, f: 20.0, c: 5.0, a: 20.0 }, 
                 clc: { w: 38.0, f: 22.0, c: 6.0, a: 22.0 }
             }
         };
 
-        // 3. FONCTION DE MISE A JOUR
         function updateDashboard(communeKey) {
             const data = communeData[communeKey];
             mapViz.flyTo(data.coords, data.zoom, { duration: 1.5 });
 
+            // Update Textes
             document.getElementById('dynamicTitle').innerText = data.title;
             document.getElementById('locationBadge').innerText = (communeKey === 'global') ? 'Département' : 'Commune';
 
-            // OSO
+            // Update KPI
+            document.getElementById('kpi-surface').innerText = data.surface;
+            document.getElementById('kpi-index').innerText = data.index;
+
+            // Update Bars
             updateBar('bar1-water', 'val1-water', data.oso.w);
             updateBar('bar1-forest', 'val1-forest', data.oso.f);
             updateBar('bar1-crop', 'val1-crop', data.oso.c);
             updateBar('bar1-artif', 'val1-artif', data.oso.a);
 
-            // CLC
             updateBar('bar2-water', 'val2-water', data.clc.w);
             updateBar('bar2-forest', 'val2-forest', data.clc.f);
             updateBar('bar2-crop', 'val2-crop', data.clc.c);
@@ -516,16 +479,36 @@
             document.getElementById(valId).innerText = value + '%';
         }
 
-        // 4. INTERACTION DECK
+        // LOGIQUE DES FILTRES (Légende interactive)
+        function toggleFilter(type, btn) {
+            // Toggle active visual state
+            if(btn.classList.contains('inactive')) {
+                btn.classList.remove('inactive');
+            } else {
+                // If we want allow multiple selection, simplistic toggle logic:
+                // But for "Focus" effect, let's say clicking one dims others?
+                // Let's do simple ON/OFF per button
+                btn.classList.add('inactive');
+            }
+
+            // Apply effect on chart rows
+            const rows = document.querySelectorAll('.row-' + type);
+            rows.forEach(row => {
+                if(btn.classList.contains('inactive')) {
+                    row.classList.add('dimmed');
+                } else {
+                    row.classList.remove('dimmed');
+                }
+            });
+        }
+
         function activateDeck(element) {
             document.querySelectorAll('.deck-card').forEach(card => card.classList.remove('active'));
             element.classList.add('active');
-            
-            // Scroll automatique pour centrer la carte active si elle est cachée
             element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
 
-        // --- NAVIGATION DOTS ---
+        // --- NAVIGATION ---
         window.addEventListener('scroll', () => {
             const sections = document.querySelectorAll('.page-section');
             const dots = document.querySelectorAll('.dot');
