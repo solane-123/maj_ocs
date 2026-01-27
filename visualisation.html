@@ -6,319 +6,484 @@
     <title>Geo Wiz - Aude</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- PALETTE --- */
+        /* --- CHARTE GRAPHIQUE --- */
         :root {
             --bg-main: #FFFEFA;        
-            --color-vivid: #E89C48;    /* Orange Abricot Vif */
+            --color-vivid: #E89C48;    /* Orange Abricot Vif (Thème) */
             --color-dark: #1A3C34;     /* Vert Sombre Profond */
             --text-body: #666666;      
+            
+            /* COULEURS DES CLASSES (Pour la Dataviz) */
+            --c-artif: #D64541;    /* Rouge */
+            --c-agri: #F2CA27;     /* Jaune Miel */
+            --c-nature: #88C425;   /* Vert Vif */
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'DM Sans', sans-serif;
+        body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', sans-serif; background-color: var(--bg-main); color: var(--text-body); }
+        
+        /* --- SIDEBAR & NAV (INCHANGÉS) --- */
+        .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 80px; background-color: #FFFFFF; box-shadow: 5px 0 25px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .scroll-indicators { display: flex; flex-direction: column; gap: 25px; }
+        .dot { width: 6px; height: 6px; background-color: #DDDDDD; border-radius: 50%; cursor: pointer; transition: all 0.4s ease; }
+        .dot.active { background-color: var(--color-vivid); transform: scale(1.5); box-shadow: 0 0 12px rgba(232, 156, 72, 0.6); }
+        .burger { position: fixed; top: 40px; right: 40px; width: 35px; height: 24px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 3000; }
+        .burger div { width: 100%; height: 3px; background-color: var(--color-dark); border-radius: 2px; }
+
+        /* --- CONTENU --- */
+        .main-content { margin-left: 80px; width: calc(100% - 80px); }
+        .page-section { min-height: 100vh; width: 100%; display: flex; position: relative; background-color: var(--bg-main); border-bottom: 1px solid #eee; }
+
+        /* --- TYPOGRAPHIE --- */
+        h1 { font-family: 'Playfair Display', serif; font-size: 5.5rem; font-weight: 700; color: var(--color-vivid); margin: 0; line-height: 0.9; letter-spacing: -2px; }
+        h2 { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: var(--color-dark); margin: 15px 0 30px 0; line-height: 1; font-style: italic; }
+        .separator { width: 80px; height: 4px; background-color: var(--color-vivid); border: none; margin: 30px 0; border-radius: 2px; }
+        .subtitle { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-vivid); font-weight: 700; margin-bottom: 20px; display: inline-block; border-bottom: 1px solid rgba(232, 156, 72, 0.3); padding-bottom: 5px; }
+        p.description-text { font-size: 1.1rem; line-height: 1.8; color: #555; font-weight: 400; max-width: 600px; margin: 0; }
+
+        /* --- PAGE 1 & 2 (STYLES) --- */
+        .p1-content { width: 55%; padding: 8%; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
+        .p1-map-container { width: 45%; background-color: #F8F9FA; border-left: 1px solid rgba(0,0,0,0.03); position: relative; }
+        #map-home { height: 100vh; position: sticky; top: 0; }
+        .kpi-section { margin-top: 50px; }
+        .big-number { font-family: 'Playfair Display', serif; font-size: 6rem; font-weight: 700; color: var(--color-dark); line-height: 1; display: flex; align-items: baseline; }
+        .big-number span { font-family: 'DM Sans', sans-serif; font-size: 2rem; color: var(--color-vivid); font-weight: 700; margin-left: 15px; }
+        .secondary-stats { display: flex; gap: 50px; margin-top: 30px; }
+        .stat-item strong { display: block; font-family: 'DM Sans', sans-serif; font-size: 1.5rem; color: var(--color-dark); font-weight: 700; }
+        .stat-item span { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+        
+        .compare-maps-wrapper { width: 45%; height: 100vh; position: sticky; top: 0; border-left: 1px solid #eee; }
+        .compare-maps-container { height: 100%; width: 100%; display: flex; background: #eee; }
+        .map-split { width: 50%; height: 100%; position: relative; border-right: 2px solid #fff; }
+        .map-label { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 8px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--color-dark); z-index: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.1); white-space: nowrap; }
+        .map-label.new { color: var(--color-vivid); border: 2px solid var(--color-vivid); }
+        .legend-box { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 30px; padding: 15px; background: #fff; border: 1px solid #eee; border-radius: 8px; width: fit-content; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #555; }
+        .color-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+        /* =================================================================
+           --- CSS PAGE 3 : DATAVIZ (CARTES SUPERPOSÉES) --- 
+           ================================================================= */
+        
+        /* Layout : Carte à Gauche (40%), Données à Droite (60%) */
+        .p3-map-wrapper {
+            width: 40%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-main); /* Pas de fond gris, fond page */
+            /* Ombre portée légère à droite pour détacher la carte du texte */
+            box-shadow: inset -10px 0 20px -10px rgba(0,0,0,0.05);
+        }
+        #map-viz { width: 100%; height: 100%; }
+
+        .p3-data-wrapper {
+            width: 60%;
+            padding: 6% 8%;
+            box-sizing: border-box;
             background-color: var(--bg-main);
-            color: var(--text-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* --- SYSTÈME DE CARTES SUPERPOSÉES (STACK) --- */
+        .cards-container {
+            margin-top: 50px;
+            position: relative;
+            min-height: 400px;
+        }
+
+        /* La carte (Le Tableau) */
+        .data-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08); /* Ombre douce */
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
             overflow: hidden;
         }
 
-        .app-container {
+        /* Style quand la carte est fermée (Superposition) */
+        .data-card.collapsed {
+            height: 80px; /* Juste le titre visible */
             display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        /* =========================================
-           1. BARRE LATÉRALE (STYLE ONR - POINTS FINS)
-           ========================================= */
-        .sidebar {
-            width: 80px;
-            background-color: #FFFFFF;
-            /* Ombre portée douce (Style ONR) */
-            box-shadow: 5px 0 25px rgba(0,0,0,0.03); 
-            display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            z-index: 100;
+            justify-content: space-between;
+        }
+        .data-card.collapsed:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
         }
 
-        .scroll-indicators {
+        /* Couleur de la bordure gauche pour identifier la catégorie */
+        .data-card.agri { border-left: 8px solid var(--c-agri); }
+        .data-card.nature { border-left: 8px solid var(--c-nature); }
+        .data-card.artif { border-left: 8px solid var(--c-artif); }
+
+        /* Style quand la carte est ouverte (Déroulée) */
+        .data-card.expanded {
+            /* Prend plus de place, les autres se poussent */
+            height: auto;
+            cursor: default;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        /* En-tête de la carte */
+        .card-header {
             display: flex;
-            flex-direction: column;
-            gap: 25px;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
-
-        /* POINTS RÉDUITS (6px) */
-        .dot {
-            width: 6px;  /* TAILLE RÉDUITE ICI */
-            height: 6px; /* TAILLE RÉDUITE ICI */
-            background-color: #DDDDDD; /* Gris très clair discret */
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            border: none;
-        }
-
-        .dot.active {
-            background-color: var(--color-vivid);
-            transform: scale(1.5); /* Grossit un peu quand actif */
-            /* EFFET LUMIÈRE VIF */
-            box-shadow: 0 0 12px rgba(232, 156, 72, 0.6); 
-        }
-
-        /* =========================================
-           2. CONTENU (55% DE LA LARGEUR)
-           ========================================= */
-        .content-panel {
-            width: 55%; /* L'entre-deux (Avant c'était 66% ou 50%) */
-            height: 100%;
-            overflow-y: auto;
-            padding: 0 8%;
-            display: flex;
-            flex-direction: column;
-            
-            /* AJUSTEMENT POSITION TEXTE : */
-            /* On enlève le centrage automatique vertical */
-            justify-content: flex-start; 
-            /* On pousse le contenu vers le bas pour l'esthétique */
-            padding-top: 18vh; 
-
-            box-sizing: border-box;
-            background-color: var(--bg-main);
-        }
-
-        /* TITRES */
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 6rem;
-            font-weight: 700;
-            color: var(--color-vivid);
-            margin: 0;
-            line-height: 0.85;
-            letter-spacing: -2px;
-        }
-
-        h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 4rem;
+        .card-title {
+            font-family: 'Playfair Display';
+            font-size: 2rem;
             font-weight: 700;
             color: var(--color-dark);
-            margin: 15px 0 30px 0;
-            line-height: 1;
-            font-style: italic;
         }
-
-        /* TRAIT */
-        .separator {
-            width: 80px;
-            height: 4px;
-            background-color: var(--color-vivid);
-            border: none;
-            margin: 40px 0;
-            border-radius: 2px;
-        }
-
-        /* DESCRIPTION */
-        .subtitle {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--color-vivid);
+        .card-percent {
+            font-family: 'DM Sans';
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 20px;
-            display: inline-block;
-            border-bottom: 1px solid rgba(232, 156, 72, 0.3);
-            padding-bottom: 5px;
+            opacity: 0.2; /* Discret quand fermé */
+        }
+        .data-card.expanded .card-percent {
+            opacity: 1;
+            color: var(--color-vivid); /* Vif quand ouvert */
         }
 
-        p.description-text {
-            font-size: 1.2rem;
-            line-height: 1.7;
-            color: #555;
-            font-weight: 400;
-            max-width: 550px;
-            margin: 0;
-        }
-
-        /* CHIFFRES */
-        .kpi-section {
-            margin-top: 40px; /* Plus d'espace avant les chiffres */
-        }
-
-        .big-number {
-            font-family: 'Playfair Display', serif;
-            font-size: 7rem;
-            font-weight: 700;
-            color: var(--color-dark);
-            line-height: 1;
-            display: flex;
-            align-items: baseline;
-        }
-
-        .big-number span {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 2.5rem;
-            color: var(--color-vivid);
-            font-weight: 700;
-            margin-left: 15px;
-        }
-
-        .secondary-stats {
-            display: flex;
-            gap: 60px;
+        /* Contenu caché (Le Détail) */
+        .card-content {
+            display: none; /* Caché par défaut */
             margin-top: 40px;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .data-card.expanded .card-content {
+            display: block; /* Visible quand ouvert */
+        }
+
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* --- STYLE DU DÉTAIL (COMME VOTRE CAPTURE 12) --- */
+        .detail-row {
+            margin-bottom: 25px;
         }
         
-        .stat-item strong {
-            display: block;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 2rem;
-            color: var(--color-dark);
+        .detail-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
             font-weight: 700;
-        }
-        .stat-item span {
-            font-size: 0.85rem;
-            color: #888;
+            color: #555;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-weight: 500;
         }
 
-        /* =========================================
-           3. CARTE (45% DE LA LARGEUR - L'ENTRE DEUX)
-           ========================================= */
-        .map-section {
-            width: 45%; /* Compromis parfait */
-            position: relative;
-            background-color: #F8F9FA;
-            border-left: 1px solid rgba(0,0,0,0.03);
-        }
-
-        #map {
+        /* Barre de progression */
+        .progress-track {
             width: 100%;
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
             height: 100%;
+            border-radius: 4px;
+            width: 0%; /* Animé en JS */
+            transition: width 1s ease 0.2s; /* Délai pour l'effet */
         }
 
-        /* BURGER MENU */
-        .burger {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            width: 35px;
-            height: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            cursor: pointer;
-            z-index: 999;
-        }
-        .burger div {
-            width: 100%;
-            height: 3px;
-            background-color: var(--color-dark);
-            border-radius: 2px;
+        /* Icône + Titre */
+        .row-header { display: flex; align-items: center; gap: 15px; }
+        .row-icon { 
+            width: 30px; height: 30px; 
+            background: #eee; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; 
         }
 
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <aside class="sidebar">
+        <div class="scroll-indicators">
+            <div class="dot active" onclick="scrollToSection('page1')"></div>
+            <div class="dot" onclick="scrollToSection('page2')"></div>
+            <div class="dot" onclick="scrollToSection('page3')"></div>
+        </div>
+    </aside>
+
+    <div class="burger"><div></div><div></div><div></div></div>
+
+    <div class="main-content">
         
-        <aside class="sidebar">
-            <div class="scroll-indicators">
-                <div class="dot active"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
-        </aside>
-
-        <section class="content-panel">
-            
-            <h1>Aude</h1>
-            <h2>Occupation<br>du sol</h2>
-            
-            <hr class="separator">
-
-            <div style="margin: 20px 0;">
-                <div class="subtitle">Analyse Géographique</div>
-                <p class="description-text">
-                    Une lecture géographique précise. Explorez l'occupation des sols, les zones naturelles et l'évolution de l'artificialisation sur l'ensemble du département.
-                </p>
-            </div>
-
-            <div class="kpi-section">
-                <div class="subtitle">SURFACE TOTALE</div>
-                
-                <div class="big-number">
-                    6.139<span>km²</span>
+        <section class="page-section" id="page1">
+            <div class="p1-content">
+                <h1>Aude</h1>
+                <h2>Terroir<br>& Territoire.</h2>
+                <hr class="separator">
+                <div style="margin: 20px 0;">
+                    <div class="subtitle">Analyse Géographique</div>
+                    <p class="description-text">
+                        Une lecture géographique précise. Explorez l'occupation des sols, les zones naturelles et l'évolution de l'artificialisation.
+                    </p>
                 </div>
-
-                <div class="secondary-stats">
-                    <div class="stat-item">
-                        <strong>547</strong>
-                        <span>Communes</span>
-                    </div>
-                    <div class="stat-item">
-                        <strong>27</strong>
-                        <span>Indice</span>
-                    </div>
+                <div class="kpi-section">
+                    <div class="subtitle">SURFACE TOTALE</div>
+                    <div class="big-number">6.139<span>km²</span></div>
                 </div>
             </div>
-
+            <div class="p1-map-container"><div id="map-home"></div></div>
         </section>
 
-        <div class="map-section">
-            <div class="burger">
-                <div></div>
-                <div></div>
-                <div></div>
+        <section class="page-section" id="page2">
+             <div class="p1-content">
+                <div class="subtitle">Données Réelles : Villeneuve-la-Comptal</div>
+                <h2 style="font-size: 3.5rem;">Correction<br>des Données.</h2>
+                <hr class="separator">
+                <p class="description-text">
+                    La parcelle 95 passe de <span style="color:var(--c-artif); font-weight:bold;">ARTIFICIALISÉ</span> à <span style="color:var(--c-nature); font-weight:bold;">NATURE</span>.
+                </p>
+                <div class="legend-box">
+                    <div class="legend-item"><div class="color-dot" style="background:var(--c-artif)"></div>Artif.</div>
+                    <div class="legend-item"><div class="color-dot" style="background:var(--c-agri)"></div>Agri.</div>
+                    <div class="legend-item"><div class="color-dot" style="background:var(--c-nature)"></div>Nature</div>
+                </div>
             </div>
-            <div id="map"></div>
-        </div>
+            <div class="compare-maps-wrapper">
+                <div class="compare-maps-container">
+                    <div id="map-left" class="map-split"><div class="map-label">OSO 2023</div></div>
+                    <div id="map-right" class="map-split"><div class="map-label new">COSIA 2024</div></div>
+                </div>
+            </div>
+        </section>
 
+        <section class="page-section" id="page3">
+            
+            <div class="p3-map-wrapper">
+                <div id="map-viz"></div>
+            </div>
+
+            <div class="p3-data-wrapper">
+                
+                <div class="subtitle">Répartition Détaillée</div>
+                <h2 style="margin-top:10px;">Occupation<br>du sol.</h2>
+                <p class="description-text">
+                    Cliquez sur une catégorie pour dérouler les détails.
+                </p>
+
+                <div class="cards-container">
+                    
+                    <div class="data-card agri collapsed" onclick="toggleCard(this, 'agri')">
+                        <div class="card-header">
+                            <span class="card-title">Espaces Agricoles</span>
+                            <span class="card-percent">48%</span>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🌾</span> Cultures céréalières</div>
+                                    <span>55%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:55%; background:var(--c-agri);"></div></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🍇</span> Vignes (AOC)</div>
+                                    <span>35%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:35%; background:var(--c-agri);"></div></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🍎</span> Vergers & Autres</div>
+                                    <span>10%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:10%; background:var(--c-agri);"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card nature collapsed" onclick="toggleCard(this, 'nature')">
+                        <div class="card-header">
+                            <span class="card-title">Milieux Naturels</span>
+                            <span class="card-percent">36%</span>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🌳</span> Forêts de Feuillus</div>
+                                    <span>40%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:40%; background:var(--c-nature);"></div></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🌲</span> Conifères</div>
+                                    <span>30%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:30%; background:var(--c-nature);"></div></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🌿</span> Garrigues</div>
+                                    <span>30%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:30%; background:var(--c-nature);"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card artif collapsed" onclick="toggleCard(this, 'artif')">
+                        <div class="card-header">
+                            <span class="card-title">Zones Artificialisées</span>
+                            <span class="card-percent">12%</span>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🏠</span> Habitat Résidentiel</div>
+                                    <span>60%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:60%; background:var(--c-artif);"></div></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🏭</span> Zones Industrielles</div>
+                                    <span>25%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:25%; background:var(--c-artif);"></div></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-info">
+                                    <div class="row-header"><span class="row-icon">🛣️</span> Réseaux Routiers</div>
+                                    <span>15%</span>
+                                </div>
+                                <div class="progress-track"><div class="progress-fill" style="width:15%; background:var(--c-artif);"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <div style="height: 20vh; background: var(--bg-main);"></div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map', {
-            zoomControl: false, 
-            attributionControl: false
-        }).setView([43.1026, 2.4140], 9);
+        // --- DONNÉES P1 & P2 (INCHANGÉ) ---
+        const data_2023={"95":{classe:"ARTIFICIALISE",val:"53%",color:"#D64541"},"96":{classe:"ARTIFICIALISE",val:"100%",color:"#D64541"},"97":{classe:"AGRICULTURE",val:"86%",color:"#F2CA27"},"98":{classe:"AGRICULTURE",val:"95%",color:"#F2CA27"},"99":{classe:"ARTIFICIALISE",val:"47%",color:"#D64541"}};
+        const data_2024={"95":{classe:"NATURE",val:"68.5%",color:"#88C425"},"96":{classe:"ARTIFICIALISE",val:"78.5%",color:"#D64541"},"97":{classe:"ARTIFICIALISE",val:"86.6%",color:"#D64541"},"98":{classe:"ARTIFICIALISE",val:"83.6%",color:"#D64541"},"99":{classe:"ARTIFICIALISE",val:"73%",color:"#D64541"}};
+        const parcelles=[{id:"95",coords:[[43.2865,1.9280],[43.2875,1.9290],[43.2868,1.9300],[43.2858,1.9290]]},{id:"96",coords:[[43.2875,1.9290],[43.2880,1.9295],[43.2872,1.9305],[43.2868,1.9300]]},{id:"97",coords:[[43.2858,1.9290],[43.2868,1.9300],[43.2860,1.9310],[43.2850,1.9300]]},{id:"98",coords:[[43.2850,1.9300],[43.2860,1.9310],[43.2855,1.9320],[43.2845,1.9310]]},{id:"99",coords:[[43.2868,1.9300],[43.2872,1.9305],[43.2865,1.9315],[43.2860,1.9310]]}];
 
-        // Fond de carte très léger
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            opacity: 0.8
-        }).addTo(map);
+        var mapHome = L.map('map-home', { zoomControl: false, attributionControl: false, scrollWheelZoom: false }).setView([43.1026, 2.4140], 9);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 0.8 }).addTo(mapHome);
+        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson').then(r=>r.json()).then(d=>{L.geoJSON(d,{style:{color:'#E89C48',weight:2,fillColor:'#E89C48',fillOpacity:0.8}}).addTo(mapHome);});
 
-        // GeoJSON Aude en ORANGE VIF
-        var geoJsonUrl = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson';
+        var center = [43.2865, 1.9295]; var zoom = 16;
+        var mapLeft = L.map('map-left', { zoomControl: false, attributionControl: false }).setView(center, zoom);
+        var mapRight = L.map('map-right', { zoomControl: false, attributionControl: false }).setView(center, zoom);
+        var satUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        L.tileLayer(satUrl, { maxZoom: 19 }).addTo(mapLeft); L.tileLayer(satUrl, { maxZoom: 19 }).addTo(mapRight);
+        parcelles.forEach(p => {
+            let i23 = data_2023[p.id]; let i24 = data_2024[p.id];
+            L.polygon(p.coords, { color: 'white', weight: 1, fillColor: i23.color, fillOpacity: 0.6 }).bindPopup(`<b>P${p.id}</b>`).addTo(mapLeft);
+            L.polygon(p.coords, { color: 'white', weight: 1, fillColor: i24.color, fillOpacity: 0.6 }).bindPopup(`<b>P${p.id}</b>`).addTo(mapRight);
+        });
+        mapLeft.on('move', () => mapRight.setView(mapLeft.getCenter(), mapLeft.getZoom(), {animate: false}));
+        mapRight.on('move', () => mapLeft.setView(mapRight.getCenter(), mapRight.getZoom(), {animate: false}));
 
-        fetch(geoJsonUrl)
+        // ==========================================
+        // --- LOGIQUE PAGE 3 : CARTE & DATAVIZ ---
+        // ==========================================
+        
+        // 1. CARTE SANS FOND (Juste le département)
+        var mapViz = L.map('map-viz', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false }).setView([43.1026, 2.4140], 9);
+        
+        // Pas de L.tileLayer ici ! (Carte flottante)
+        
+        // On remet le département en orange (comme P1)
+        var audeLayerViz;
+        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
             .then(res => res.json())
             .then(data => {
-                L.geoJSON(data, {
-                    style: {
-                        color: '#E89C48',      // Orange Vif
-                        weight: 2,             
-                        fillColor: '#E89C48',  
-                        fillOpacity: 0.8
-                    }
-                }).addTo(map);
+                audeLayerViz = L.geoJSON(data, {
+                    style: { color: '#E89C48', weight: 2, fillColor: '#E89C48', fillOpacity: 0.5 }
+                }).addTo(mapViz);
             });
+
+        // 2. INTERACTION "ACCORDÉON" (Déroulement)
+        function toggleCard(element, type) {
+            // Si déjà ouvert, on le ferme
+            if (element.classList.contains('expanded')) {
+                element.classList.remove('expanded');
+                element.classList.add('collapsed');
+                // Reset couleur carte
+                if(audeLayerViz) audeLayerViz.setStyle({fillColor: '#E89C48', color: '#E89C48'});
+                return;
+            }
+
+            // Sinon, on ferme les autres
+            document.querySelectorAll('.data-card').forEach(card => {
+                card.classList.remove('expanded');
+                card.classList.add('collapsed');
+            });
+
+            // Et on ouvre celui-là
+            element.classList.remove('collapsed');
+            element.classList.add('expanded');
+
+            // Mise à jour couleur carte P3 selon le thème
+            let newColor = '#E89C48';
+            if(type === 'agri') newColor = '#F2CA27';
+            if(type === 'nature') newColor = '#88C425';
+            if(type === 'artif') newColor = '#D64541';
+            
+            if(audeLayerViz) audeLayerViz.setStyle({fillColor: newColor, color: newColor});
+        }
+
+
+        // --- NAVIGATION DOTS ---
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.page-section');
+            const dots = document.querySelectorAll('.dot');
+            let current = 'page1';
+            sections.forEach(section => {
+                if (pageYOffset >= (section.offsetTop - window.innerHeight / 2)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active');
+                if (current === 'page1' && index === 0) dot.classList.add('active');
+                if (current === 'page2' && index === 1) dot.classList.add('active');
+                if (current === 'page3' && index === 2) dot.classList.add('active');
+            });
+            if(current === 'page2') { mapLeft.invalidateSize(); mapRight.invalidateSize(); }
+            if(current === 'page3') { mapViz.invalidateSize(); }
+        });
+
+        window.scrollToSection = function(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); };
     </script>
 </body>
 </html>
