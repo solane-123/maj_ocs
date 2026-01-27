@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geo Wiz - Explorateur Cartographique</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --sidebar-width: 350px;
+            --color-vivid: #E89C48;
+            --color-dark: #1A3C34;
+            --bg-light: #F8F9FA;
+        }
+
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+        /* LAYOUT GENERAL */
+        .app-container { display: flex; height: 100vh; width: 100vw; }
+
+        /* SIDEBAR (OUTILS) */
+        .app-sidebar {
+            width: var(--sidebar-width); background: white; border-right: 1px solid #ddd;
+            display: flex; flex-direction: column; z-index: 500; /* Z-index réduit pour être sous le modal */
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-header { padding: 20px; background: var(--color-dark); color: white; display: flex; align-items: center; justify-content: space-between; }
+        .sidebar-header h1 { font-family: 'Playfair Display'; font-size: 1.2rem; margin: 0; }
+        .back-btn { color: white; text-decoration: none; font-size: 0.9rem; opacity: 0.8; transition: opacity 0.2s; }
+        .back-btn:hover { opacity: 1; }
+
+        .sidebar-content { flex: 1; padding: 20px; overflow-y: auto; }
+
+        /* SECTION TOOLS */
+        .tool-group { margin-bottom: 30px; }
+        .tool-title { font-size: 0.75rem; text-transform: uppercase; color: #999; font-weight: 700; letter-spacing: 1px; margin-bottom: 15px; }
+
+        .layer-item {
+            display: flex; align-items: center; padding: 10px; border-radius: 8px; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 5px; border: 1px solid transparent;
+        }
+        .layer-item:hover { background: var(--bg-light); }
+        .layer-item.active { background: rgba(232, 156, 72, 0.1); border-color: var(--color-vivid); }
+        .layer-icon { width: 20px; height: 20px; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; }
+
+        /* CARTE */
+        .app-map { flex: 1; position: relative; background: #e5e5e5; }
+        #map { width: 100%; height: 100%; }
+
+        .map-tools {
+            position: absolute; top: 20px; right: 20px; z-index: 400;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .map-btn {
+            width: 40px; height: 40px; background: white; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer;
+            color: var(--color-dark); font-size: 1.1rem; transition: all 0.2s;
+        }
+        .map-btn:hover { transform: scale(1.05); color: var(--color-vivid); }
+
+        /* =========================================
+           --- NOUVEAU : STYLE DU POP-UP MODAL ---
+           ========================================= */
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 60, 52, 0.7); /* Vert sombre transparent */
+            z-index: 2000; /* Au-dessus de tout */
+            display: flex; justify-content: center; align-items: center;
+            opacity: 1; transition: opacity 0.5s ease;
+        }
+        
+        .modal-box {
+            background: #fff;
+            width: 800px; max-width: 90%;
+            border-radius: 8px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 40px 60px;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .close-modal {
+            position: absolute; top: 20px; right: 20px;
+            font-size: 24px; color: #999; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: var(--color-dark); }
+
+        /* Illustration style "Sols de Bretagne" */
+        .modal-illustration {
+            width: 150px; height: 150px;
+            background: #E8F5E9; /* Fond vert très clair */
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 30px;
+            margin-top: -80px; /* Chevauchement vers le haut */
+            border: 8px solid #fff; /* Bordure blanche pour détacher */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .modal-illustration img { width: 80%; height: auto; } /* Si image réelle */
+        .modal-illustration i { font-size: 60px; color: var(--color-dark); } /* Icône fallback */
+
+        /* Tabs simulinés */
+        .modal-tabs {
+            display: flex; gap: 30px; margin-bottom: 30px;
+            border-bottom: 1px solid #eee; width: 100%; justify-content: center;
+        }
+        .modal-tab {
+            padding-bottom: 10px; font-size: 0.8rem; font-weight: 700;
+            color: #999; text-transform: uppercase; letter-spacing: 1px;
+            cursor: pointer; border-bottom: 2px solid transparent;
+        }
+        .modal-tab.active { color: var(--color-dark); border-bottom-color: var(--color-dark); }
+
+        /* Contenu Texte */
+        .modal-title {
+            font-family: 'Playfair Display'; font-size: 2rem;
+            color: var(--color-dark); margin-bottom: 20px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .modal-text {
+            font-size: 1rem; color: #666; line-height: 1.6;
+            margin-bottom: 20px; max-width: 650px;
+        }
+
+        /* Bouton Entrer */
+        .enter-btn {
+            background-color: #B5C99A; /* Vert pâle style capture */
+            color: #fff; font-weight: 700; text-transform: uppercase;
+            padding: 15px 40px; border-radius: 4px; border: none;
+            cursor: pointer; font-size: 0.9rem; letter-spacing: 1px;
+            transition: all 0.3s; margin-top: 10px;
+        }
+        .enter-btn:hover { background-color: var(--color-dark); }
+
+    </style>
+</head>
+<body>
+
+    <div id="welcomeOverlay" class="modal-overlay">
+        <div class="modal-box">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            
+            <div class="modal-illustration">
+                <i class="fas fa-layer-group"></i> 
+            </div>
+
+            <div style="font-family:'Playfair Display'; font-size:1.2rem; color:#888; margin-bottom:10px;">CARTE DES</div>
+            
+            <div class="modal-tabs">
+                <div class="modal-tab active">Bienvenue</div>
+                <div class="modal-tab">Le Programme</div>
+                <div class="modal-tab">Données</div>
+                <div class="modal-tab">Crédits</div>
+            </div>
+
+            <h2 class="modal-title">Les Sols de l'Aude à la Carte</h2>
+
+            <p class="modal-text">
+                À l'interface entre l'agriculture et l'urbanisme, les sols remplissent des fonctions essentielles aux équilibres globaux et au développement des activités humaines de l'Aude.
+            </p>
+            <p class="modal-text">
+                Imaginé et créé dans le cadre du programme Geo Wiz, ce portail permet de visualiser, consulter et télécharger les données sur les sols (OSO, CLC, Cadastre) disponibles pour les acteurs du territoire.
+            </p>
+
+            <button class="enter-btn" onclick="closeModal()">Entrer dans l'application</button>
+        </div>
+    </div>
+
+
+    <div class="app-container">
+        
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <h1>Geo Wiz Pro</h1>
+                <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Retour</a>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="tool-group">
+                    <div class="tool-title">Fonds de Plan</div>
+                    <div class="layer-item active" onclick="switchBaseLayer('light', this)">
+                        <div class="layer-icon" style="background:#ddd; color:#555;"><i class="fas fa-map"></i></div>
+                        <span>Plan Clair (Standard)</span>
+                    </div>
+                    <div class="layer-item" onclick="switchBaseLayer('sat', this)">
+                        <div class="layer-icon" style="background:#1A3C34;"><i class="fas fa-satellite"></i></div>
+                        <span>Satellite HD</span>
+                    </div>
+                    <div class="layer-item" onclick="switchBaseLayer('dark', this)">
+                        <div class="layer-icon" style="background:#000;"><i class="fas fa-moon"></i></div>
+                        <span>Mode Sombre</span>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <div class="tool-title">Couches Thématiques</div>
+                    <div class="layer-item" onclick="toggleOverlay('parcelles', this)">
+                        <div class="layer-icon" style="background:var(--color-vivid);"><i class="fas fa-vector-square"></i></div>
+                        <span>Cadastre / Parcelles</span>
+                    </div>
+                    <div class="layer-item" onclick="toggleOverlay('inondation', this)">
+                        <div class="layer-icon" style="background:#4A90E2;"><i class="fas fa-water"></i></div>
+                        <span>Zones Inondables (PPRI)</span>
+                    </div>
+                    <div class="layer-item" onclick="toggleOverlay('agri', this)">
+                        <div class="layer-icon" style="background:#F2CA27;"><i class="fas fa-wheat"></i></div>
+                        <span>Zones Agricoles (RPG)</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="app-map">
+            <div id="map"></div>
+            <div class="map-tools">
+                <div class="map-btn" title="Ma position"><i class="fas fa-location-arrow"></i></div>
+                <div class="map-btn" title="Rechercher"><i class="fas fa-search"></i></div>
+                <div class="map-btn" title="Légende"><i class="fas fa-list"></i></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // FONCTION FERMETURE MODAL
+        function closeModal() {
+            const overlay = document.getElementById('welcomeOverlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500); // Attend la fin de la transition d'opacité
+        }
+
+        // INIT MAP
+        var map = L.map('map', { zoomControl: false }).setView([43.2121, 2.3537], 12);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // BASES LAYERS
+        var baseLayers = {
+            'light': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }),
+            'sat': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+            'dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 })
+        };
+        baseLayers.light.addTo(map);
+
+        function switchBaseLayer(type, element) {
+            map.eachLayer(function (layer) { map.removeLayer(layer); });
+            baseLayers[type].addTo(map);
+            if(audeLayer) audeLayer.addTo(map);
+            let siblings = element.parentElement.children;
+            for(let sib of siblings) { sib.classList.remove('active'); }
+            element.classList.add('active');
+        }
+
+        var audeLayer;
+        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
+            .then(res => res.json())
+            .then(data => {
+                audeLayer = L.geoJSON(data, {
+                    style: { color: '#E89C48', weight: 3, fillOpacity: 0 }
+                }).addTo(map);
+                map.fitBounds(audeLayer.getBounds());
+            });
+
+        function toggleOverlay(type, element) {
+            element.classList.toggle('active');
+            if(element.classList.contains('active')) {
+                alert("Couche " + type + " activée (Simulation)");
+            }
+        }
+    </script>
+</body>
+</html>
