@@ -190,6 +190,25 @@
         .bg-darkblue { background-color: var(--tm-darkblue); }
         .bg-grey { background-color: var(--tm-grey); }
         .bg-bright { background-color: var(--tm-bright); }
+        /* STYLE DU BOUTON D'APPEL À L'ACTION */
+        .cta-button {
+            display: inline-block;
+            background-color: var(--color-dark);
+            color: #fff;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .cta-button:hover {
+            background-color: var(--color-vivid);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(232, 156, 72, 0.3);
+        }
 
     </style>
 </head>
@@ -382,7 +401,14 @@
 
                 </div>
             </div>
-
+            <div style="margin-top: 60px; text-align: center;">
+                <p style="margin-bottom: 20px; font-size: 1.1rem; color: #666;">
+                    Pour une analyse parcellaire détaillée et l'accès aux couches SIG complètes :
+                </p>
+                <a href="map.html" class="cta-button">
+                    Explorer la Carte Interactive →
+                </a>
+            </div>
         </section>
 
         <div style="height: 20vh; background: var(--bg-main);"></div>
