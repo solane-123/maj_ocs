@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Wiz - Explorateur Cartographique</title>
+    <title>Geo Wiz - Explorateur Hybride</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,111 +11,110 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- STYLE GLOBAL --- */
         :root {
-            --sidebar-width: 60px; 
-            --panel-width: 420px;
+            /* --- PALETTE GÉNÉRALE --- */
             --color-vivid: #E89C48;
             --color-dark: #1A3C34;
             --bg-light: #F8F9FA;
-            
-            /* Couleurs */
-            --sol-texture: #B5C99A; --sol-famille: #F2CA27; --sol-epais: #E07A5F; --sol-drain: #3D5A80;
-            --mos-foret: #A0D9B4; --mos-agri: #FBE7C6; --mos-nature: #E8F5E9; --mos-eau: #AECBFA; --mos-artif: #81C784; --mos-hab: #FFCCBC;
+
+            /* --- PALETTE MOS (Diagramme) --- */
+            --mos-foret: #A0D9B4;
+            --mos-nature: #E8F5E9;
+            --mos-agri: #FBE7C6;
+            --mos-eau: #AECBFA;
+            --mos-artif-open: #81C784;
+            --mos-habitat-ind: #FFCCBC;
+            --mos-habitat-col: #EF5350;
+            --mos-activite: #E1BEE7;
+
+            /* --- PALETTE SOLS (Barres) --- */
+            --sol-texture: #B5C99A;
+            --sol-famille: #F2CA27;
+            --sol-epais: #E07A5F;
+            --sol-drain: #3D5A80;
+            --sol-water: #4A90E2;
         }
 
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'DM Sans', sans-serif; overflow: hidden; background: #e5e5e5; }
-        .app-container { display: flex; height: 100vh; width: 100vw; position: relative; overflow: hidden; }
 
-        /* --- 1. SIDEBAR GAUCHE (NAVIGATION) --- */
-        .app-sidebar {
-            width: var(--sidebar-width); background: var(--color-dark);
+        /* --- LAYOUT --- */
+        .app-container { display: flex; height: 100vh; width: 100vw; }
+
+        /* SIDEBAR GAUCHE */
+        .left-sidebar {
+            width: 60px; background: var(--color-dark);
             display: flex; flex-direction: column; align-items: center; padding-top: 20px;
-            z-index: 500; flex-shrink: 0;
+            z-index: 500;
         }
-        
-        /* BOUTON RETOUR ACCUEIL */
         .nav-icon {
-            color: rgba(255,255,255,0.6); font-size: 1.2rem; margin-bottom: 25px; cursor: pointer;
-            transition: all 0.3s; display: flex; justify-content: center; align-items: center; width: 100%; text-decoration: none;
+            color: rgba(255,255,255,0.6); font-size: 1.2rem; margin-bottom: 25px; cursor: pointer; transition: all 0.3s;
+            display: flex; justify-content: center; align-items: center; width: 100%; text-decoration: none;
         }
-        .nav-icon:hover, .nav-icon.active { color: #fff; transform: scale(1.1); background: rgba(255,255,255,0.1); border-radius: 5px; }
-        
+        .nav-icon:hover, .nav-icon.active { color: #fff; transform: scale(1.1); }
         .nav-sep { width: 30px; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 25px; }
 
-        /* --- 2. CARTE --- */
-        .app-map { flex: 1; position: relative; background: #e5e5e5; z-index: 1; }
+        /* MAP */
+        .map-area { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; }
-        .map-tools {
-            position: absolute; top: 20px; right: 20px; z-index: 400;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .map-btn {
-            width: 40px; height: 40px; background: white; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; color: var(--color-dark); transition: all 0.2s;
-        }
-        .map-btn:hover { transform: scale(1.05); color: var(--color-vivid); }
 
-        /* --- 3. PANNEAU DROIT --- */
-        .right-panel {
-            position: absolute; top: 0; right: 0; bottom: 0;
-            width: var(--panel-width); background: white;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.1); z-index: 600;
-            transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            display: flex; flex-direction: column;
+        /* SIDEBAR DROITE (CONTENEUR PRINCIPAL) */
+        .right-sidebar {
+            width: 420px; background: white; border-left: 1px solid #ddd;
+            display: flex; flex-direction: column; z-index: 500;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        .right-panel.open { transform: translateX(0); }
 
-        .panel-header { background: #fff; border-bottom: 1px solid #eee; }
-        .panel-top-row { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; }
-        .panel-title { font-family: 'Playfair Display'; font-weight: 700; color: #333; font-size: 1.3rem; margin: 0; }
-        .close-panel-btn { cursor: pointer; color: #999; font-size: 1.2rem; transition: color 0.2s; }
-        .close-panel-btn:hover { color: var(--color-vivid); }
-
-        .panel-tabs { display: flex; padding: 0 25px; gap: 20px; }
-        .tab-btn {
-            padding-bottom: 15px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
-            color: #999; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; letter-spacing: 1px;
+        /* --- STYLES COMMUNS PANNEAUX --- */
+        .panel-view {
+            display: flex; flex-direction: column; height: 100%;
+            animation: fadeIn 0.4s ease-out;
         }
-        .tab-btn.active { color: var(--color-dark); border-bottom-color: var(--color-vivid); }
-
-        .panel-content { padding: 25px; overflow-y: auto; flex: 1; position: relative; }
-        .view-section { display: none; animation: fadeIn 0.4s; }
-        .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Cacher la vue inactive */
+        .hidden-view { display: none !important; }
 
-        /* Styles Internes Panneau */
+        .panel-header { padding: 20px 25px; border-bottom: 1px solid #eee; background: #fff; }
+        .panel-content { padding: 0 25px 25px 25px; overflow-y: auto; flex: 1; }
+        .panel-title { font-family: 'Playfair Display'; font-weight: 700; color: #333; font-size: 1.3rem; margin: 0; }
+        .panel-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .close-btn { cursor: pointer; color: #999; font-size: 1.1rem; transition: color 0.2s; }
+        .close-btn:hover { color: #d64541; }
+
+        /* --- STYLE SPÉCIFIQUE : VUE BARRES (SOLS) --- */
         .info-block { display: flex; gap: 20px; margin-bottom: 30px; }
         .info-icon-box { width: 50px; height: 50px; min-width: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
         .info-data { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .info-label { font-size: 0.7rem; color: #999; font-weight: 500; margin-bottom: 4px; text-transform: uppercase; }
-        .info-value { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; line-height: 1.3; margin-bottom: 8px; color: #333; }
+        .info-label { font-size: 0.7rem; color: #999; font-weight: 500; margin-bottom: 4px; }
+        .info-value { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; line-height: 1.3; margin-bottom: 8px; }
         .progress-track { width: 100%; height: 4px; background: #eee; border-radius: 2px; }
         .progress-fill { height: 100%; border-radius: 2px; }
 
-        .theme-texture .info-icon-box, .theme-texture .progress-fill { background-color: var(--sol-texture); }
-        .theme-famille .info-icon-box, .theme-famille .progress-fill { background-color: var(--sol-famille); }
-        .theme-epais .info-icon-box, .theme-epais .progress-fill { background-color: var(--sol-epais); }
-        .theme-drain .info-icon-box, .theme-drain .progress-fill { background-color: var(--sol-drain); }
+        /* Thèmes Barres */
+        .theme-texture .info-icon-box { background-color: var(--sol-texture); } .theme-texture .info-value { color: var(--sol-texture); } .theme-texture .progress-fill { background-color: var(--sol-texture); width: 40%; }
+        .theme-famille .info-icon-box { background-color: var(--sol-famille); } .theme-famille .info-value { color: var(--sol-famille); } .theme-famille .progress-fill { background-color: var(--sol-famille); width: 55%; }
+        .theme-epais .info-icon-box { background-color: var(--sol-epais); } .theme-epais .info-value { color: var(--sol-epais); } .theme-epais .progress-fill { background-color: var(--sol-epais); width: 35%; }
+        .theme-drain .info-icon-box { background-color: var(--sol-drain); } .theme-drain .info-value { color: var(--sol-drain); } .theme-drain .progress-fill { background-color: var(--sol-drain); width: 50%; }
 
-        .scale-selector-container { background: #f4f4f4; border-radius: 6px; padding: 2px; margin-bottom: 20px; }
-        .scale-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'DM Sans'; font-weight: 700; background: #fff; cursor: pointer; }
-        .chart-container { position: relative; width: 200px; height: 200px; margin: 20px auto; border-radius: 50%; background: conic-gradient(#ddd 0% 100%); display: flex; justify-content: center; align-items: center; }
-        .chart-center { width: 150px; height: 150px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
-        .chart-value { font-size: 1.6rem; font-weight: 700; color: #333; line-height: 1; }
-        .chart-unit { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-top: 5px; }
+        /* --- STYLE SPÉCIFIQUE : VUE DIAGRAMME (CHART) --- */
+        .scale-selector-container { background: #f4f4f4; border-radius: 6px; padding: 2px; display: inline-block; width: 100%; margin-bottom: 10px; }
+        .scale-select { width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-family: 'DM Sans'; font-weight: 700; color: var(--color-dark); background: #fff; cursor: pointer; outline: none; }
+        
+        .chart-container { position: relative; width: 220px; height: 220px; margin: 30px auto; border-radius: 50%; background: conic-gradient(#ddd 0% 100%); display: flex; justify-content: center; align-items: center; }
+        .chart-center { width: 160px; height: 160px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+        .chart-value { font-size: 1.8rem; font-weight: 700; color: #333; line-height: 1; }
+        .chart-unit { font-size: 0.9rem; color: #888; text-transform: uppercase; margin-top: 5px; }
+        
         .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .legend-item { display: flex; align-items: center; font-size: 0.75rem; color: #666; }
         .legend-color { width: 12px; height: 12px; border-radius: 2px; margin-right: 8px; flex-shrink: 0; }
 
-        /* MODAL */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 60, 52, 0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.5s ease; }
-        .modal-box { background: #fff; width: 800px; max-width: 90%; border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; padding: 40px 60px; text-align: center; }
-        .modal-illustration { width: 100px; height: 100px; background: #E8F5E9; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border: 5px solid #fff; margin-top: -60px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .modal-illustration i { font-size: 40px; color: var(--color-dark); }
-        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
-        .enter-btn { background-color: #B5C99A; color: #fff; font-weight: 700; text-transform: uppercase; padding: 12px 30px; border-radius: 4px; border: none; cursor: pointer; margin-top: 20px; }
+        /* MODAL WELCOME */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 60, 52, 0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
+        .modal-box { background: #fff; width: 700px; max-width: 90%; border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; padding: 40px 50px; text-align: center; }
+        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 24px; color: #999; cursor: pointer; }
+        .enter-btn { background-color: #B5C99A; color: #fff; font-weight: 700; text-transform: uppercase; padding: 15px 40px; border-radius: 4px; border: none; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -123,91 +122,169 @@
     <div id="welcomeOverlay" class="modal-overlay">
         <div class="modal-box">
             <span class="close-modal" onclick="closeModal()">&times;</span>
-            <div class="modal-illustration"><i class="fas fa-layer-group"></i></div>
-            <h2 style="font-family:'Playfair Display'; font-size:2rem; color:var(--color-dark); margin:0 0 20px 0;">SOLS DE L'AUDE</h2>
-            <p style="color:#666; line-height:1.6;">Bienvenue sur l'explorateur cartographique.</p>
-            <button class="enter-btn" onclick="closeModal()">Accéder à la carte</button>
+            <div style="font-family:'Playfair Display'; font-size:1.2rem; color:#888; margin-bottom:10px;">EXPLORATEUR</div>
+            <h2 style="font-family:'Playfair Display'; font-size:2rem; color:var(--color-dark); margin:0 0 20px 0;">SOLS & TERRITOIRES</h2>
+            <p style="color:#666; line-height:1.6;">
+                Cette carte interactive combine deux niveaux de lecture :<br>
+                1. <strong>Par défaut :</strong> Une fiche pédologique globale (Barres).<br>
+                2. <strong>Au clic :</strong> Le détail de l'occupation des sols de la zone (Diagramme).
+            </p>
+            <button class="enter-btn" onclick="closeModal()">Commencer l'exploration</button>
         </div>
     </div>
 
     <div class="app-container">
         
-        <aside class="app-sidebar">
-            <a href="visualisation.html" class="nav-icon" title="Retour Accueil"><i class="fas fa-arrow-left"></i></a>
-            
+        <aside class="left-sidebar">
+            <div class="nav-icon" title="Retour"><i class="fas fa-arrow-left"></i></div>
             <div class="nav-sep"></div>
             <div class="nav-icon active" title="Couches"><i class="fas fa-layer-group"></i></div>
-            <div class="nav-icon" title="Filtres"><i class="fas fa-filter"></i></div>
-            <div class="nav-icon" title="Mesure"><i class="fas fa-ruler-combined"></i></div>
+            <div class="nav-icon" title="Légende"><i class="fas fa-list-ul"></i></div>
         </aside>
 
-        <main class="app-map">
+        <main class="map-area">
             <div id="map"></div>
-            <div class="map-tools">
-                <div class="map-btn"><i class="fas fa-search"></i></div>
-                <div class="map-btn"><i class="fas fa-location-arrow"></i></div>
+            <div style="position:absolute; top:20px; left:20px; z-index:400; background:white; padding:10px 15px; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-search" style="color:#999;"></i>
+                <input type="text" placeholder="Rechercher une commune..." style="border:none; outline:none; font-family:'DM Sans'; width:200px;">
             </div>
         </main>
 
-        <aside class="right-panel" id="rightPanel">
-            <div class="panel-header">
-                <div class="panel-top-row">
-                    <h2 class="panel-title" id="panel-title-text">Département</h2>
-                    <i class="fas fa-times close-panel-btn" onclick="closePanel()"></i>
+        <aside class="right-sidebar">
+            
+            <div id="view-bars" class="panel-view">
+                <div class="panel-header">
+                    <div class="panel-top-row">
+                        <div class="panel-title">Fiche Pédologique</div>
+                        <i class="fas fa-info-circle" style="color:#ccc;"></i>
+                    </div>
+                    <small style="color:#666; display:block; margin-top:-10px;">Données globales du département</small>
                 </div>
-                <div class="panel-tabs">
-                    <div class="tab-btn" onclick="switchTab('pedologie', this)">Fiche Pédologique</div>
-                    <div class="tab-btn active" onclick="switchTab('bilan', this)">Bilan Territorial</div>
+
+                <div class="panel-content" style="padding-top:25px;">
+                    <div class="info-block theme-texture">
+                        <div class="info-icon-box"><i class="fas fa-border-all"></i></div> 
+                        <div class="info-data">
+                            <span class="info-label">Texture dominante</span>
+                            <span class="info-value">Limon Sablo-Argileux (40%)</span>
+                            <div class="progress-track"><div class="progress-fill"></div></div>
+                        </div>
+                    </div>
+                    <div class="info-block theme-famille">
+                        <div class="info-icon-box"><i class="fas fa-circle-nodes"></i></div> 
+                        <div class="info-data">
+                            <span class="info-label">Famille de sol</span>
+                            <span class="info-value">Sols de Talweg & Vallées (55%)</span>
+                            <div class="progress-track"><div class="progress-fill"></div></div>
+                        </div>
+                    </div>
+                    <div class="info-block theme-epais">
+                        <div class="info-icon-box"><i class="fas fa-align-justify"></i></div> 
+                        <div class="info-data">
+                            <span class="info-label">Épaisseur moyenne</span>
+                            <span class="info-value">Profondeur 80-100cm (35%)</span>
+                            <div class="progress-track"><div class="progress-fill"></div></div>
+                        </div>
+                    </div>
+                    <div class="info-block theme-drain">
+                        <div class="info-icon-box"><i class="fas fa-tint"></i></div> 
+                        <div class="info-data">
+                            <span class="info-label">Qualité du Drainage</span>
+                            <span class="info-value">Drainage Favorable (50%)</span>
+                            <div class="progress-track"><div class="progress-fill"></div></div>
+                        </div>
+                    </div>
+
+                    <div style="background:#f4f4f4; padding:15px; border-radius:6px; font-size:0.8rem; color:#666; margin-top:20px;">
+                        <i class="fas fa-mouse-pointer"></i> <strong>Astuce :</strong> Cliquez sur une zone de la carte pour voir le diagramme d'occupation des sols spécifique.
+                    </div>
                 </div>
             </div>
 
-            <div class="panel-content">
-                
-                <div id="view-pedologie" class="view-section">
-                    <h3 style="font-size:1rem; margin-bottom:20px; color:#333;">Caractéristiques du sol</h3>
-                    <div class="info-block theme-texture"><div class="info-icon-box"><i class="fas fa-border-all"></i></div><div class="info-data"><span class="info-label">Texture</span><span class="info-value">Limon Sablo-Argileux (40%)</span><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div></div></div>
-                    <div class="info-block theme-famille"><div class="info-icon-box"><i class="fas fa-circle-nodes"></i></div><div class="info-data"><span class="info-label">Famille</span><span class="info-value">Sols de Talweg (55%)</span><div class="progress-track"><div class="progress-fill" style="width:55%"></div></div></div></div>
-                    <div class="info-block theme-epais"><div class="info-icon-box"><i class="fas fa-align-justify"></i></div><div class="info-data"><span class="info-label">Épaisseur</span><span class="info-value">Profonds 80-100cm (35%)</span><div class="progress-track"><div class="progress-fill" style="width:35%"></div></div></div></div>
-                </div>
-
-                <div id="view-bilan" class="view-section active">
+            <div id="view-chart" class="panel-view hidden-view">
+                <div class="panel-header">
+                    <div class="panel-top-row">
+                        <h2 class="panel-title" id="panelTitle">Détails Zone</h2>
+                        <i class="fas fa-times close-btn" onclick="returnToDefault()" title="Fermer et revenir aux sols"></i>
+                    </div>
+                    
                     <div class="scale-selector-container">
-                        <select class="scale-select" id="scaleSelector" onchange="updateChart()">
+                        <select class="scale-select" id="scaleSelector" onchange="updateChartFromSelector()">
                             <option value="commune">Commune (Sélection)</option>
                             <option value="interco">Intercommunalité</option>
-                            <option value="departement">Département (Aude)</option>
+                            <option value="departement">Département (Global)</option>
                         </select>
-                    </div>
-                    <div class="chart-container" id="donutChart">
-                        <div class="chart-center"><div class="chart-value" id="totalSurface">--</div><div class="chart-unit">km² Total</div></div>
-                    </div>
-                    <strong style="display:block; font-size:0.75rem; color:#999; margin-bottom:10px; text-transform:uppercase;">Occupation des sols</strong>
-                    <div class="legend-grid">
-                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-foret)"></div>Forêts</div>
-                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-agri)"></div>Agri.</div>
-                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-nature)"></div>Naturels</div>
-                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-eau)"></div>Eau</div>
-                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-artif)"></div>Artif.</div>
-                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-hab)"></div>Habitat</div>
                     </div>
                 </div>
 
+                <div class="panel-content">
+                    <div class="chart-container" id="donutChart">
+                        <div class="chart-center">
+                            <div class="chart-value" id="totalSurface">--</div>
+                            <div class="chart-unit">km² Total</div>
+                        </div>
+                    </div>
+
+                    <strong style="display:block; font-size:0.8rem; color:#333; margin-top:10px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px;">Légende MOS</strong>
+                    
+                    <div class="legend-grid">
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-foret)"></div>Forêts (35%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-agri)"></div>Agricole (40%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-nature)"></div>Semi-naturel (10%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-eau)"></div>Eau (1%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-artif-open)"></div>Artif. Ouvert (2%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-habitat-ind)"></div>Hab. Indiv. (5%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-habitat-col)"></div>Hab. Coll. (3%)</div>
+                        <div class="legend-item"><div class="legend-color" style="background:var(--mos-activite)"></div>Activités (4%)</div>
+                    </div>
+                </div>
             </div>
+
         </aside>
+
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // --- 1. GESTION DES VUES (LE COEUR DE TA DEMANDE) ---
+        
+        // Fonction pour afficher le diagramme (déclenchée au clic map)
+        function showChartPanel(locationName) {
+            // 1. Cacher les barres
+            document.getElementById('view-bars').classList.add('hidden-view');
+            // 2. Montrer le chart
+            document.getElementById('view-chart').classList.remove('hidden-view');
+            
+            // 3. Mise à jour des données
+            // On simule que l'utilisateur a cliqué sur une commune
+            document.getElementById('scaleSelector').value = 'commune';
+            // On pourrait utiliser locationName ici pour changer le titre
+            updatePanelData('commune'); 
+        }
+
+        // Fonction pour revenir à l'état initial (Barres)
+        function returnToDefault() {
+            // 1. Cacher le chart
+            document.getElementById('view-chart').classList.add('hidden-view');
+            // 2. Montrer les barres
+            document.getElementById('view-bars').classList.remove('hidden-view');
+            
+            // Reset visuel carte
+            if(audeLayer) audeLayer.setStyle({color: '#E89C48', fillOpacity: 0.1});
+        }
+
         function closeModal() {
             const overlay = document.getElementById('welcomeOverlay');
             overlay.style.opacity = '0';
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
 
+        // --- 2. MAP INIT ---
         var map = L.map('map', { zoomControl: false }).setView([43.1026, 2.4140], 9);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, opacity: 1 }).addTo(map);
 
+        // --- 3. CHARGEMENT GEOJSON & INTERACTIVITÉ ---
         var audeLayer;
         fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
             .then(res => res.json())
@@ -215,60 +292,69 @@
                 audeLayer = L.geoJSON(data, {
                     style: { color: '#E89C48', weight: 3, fillOpacity: 0.1 },
                     onEachFeature: function(feature, layer) {
+                        
+                        // C'est ICI que tout se joue
                         layer.on('click', function(e) {
-                            L.DomEvent.stopPropagation(e);
-                            map.flyTo(e.latlng, 12, { duration: 1.5 });
-                            audeLayer.setStyle({fillOpacity: 0.1});
-                            e.target.setStyle({fillOpacity: 0.3, color: '#D64541'});
-                            openPanelWithZoom("Zone Sélectionnée");
+                            L.DomEvent.stopPropagation(e); // Empêche le clic de traverser
+
+                            // 1. Highlight visuel
+                            audeLayer.setStyle({fillOpacity: 0.1}); // reset
+                            e.target.setStyle({fillOpacity: 0.4, color: '#D64541'});
+                            map.fitBounds(e.target.getBounds());
+
+                            // 2. BASCULE VERS LE PANNEAU DIAGRAMME
+                            showChartPanel("Nom de la Zone");
                         });
                     }
                 }).addTo(map);
             });
 
-        function openPanelWithZoom(title) {
-            const panel = document.getElementById('rightPanel');
-            panel.classList.add('open');
-            document.getElementById('panel-title-text').innerText = title;
-            const tabs = document.querySelectorAll('.tab-btn');
-            switchTab('bilan', tabs[1]); 
-            document.getElementById('scaleSelector').value = "commune";
-            updateChart(); 
-        }
+        // Gestion du clic dans le vide pour réinitialiser (optionnel)
+        map.on('click', function() {
+            returnToDefault();
+        });
 
-        function closePanel() {
-            document.getElementById('rightPanel').classList.remove('open');
-            map.flyTo([43.1026, 2.4140], 9, { duration: 1.5 });
-            if(audeLayer) audeLayer.setStyle({fillOpacity: 0.1, color: '#E89C48'});
-        }
-
-        function switchTab(viewId, btnElement) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-' + viewId).classList.add('active');
-            if(viewId === 'bilan') updateChart();
-        }
-
-        const chartData = {
-            'departement': { s: '6 139', d: [35, 40, 10, 1, 2, 12] },
-            'interco': { s: '1 050', d: [20, 50, 5, 5, 10, 10] },
-            'commune': { s: '65', d: [10, 20, 10, 10, 20, 30] }
+        // --- 4. LOGIQUE DATAVIZ (DONUT) ---
+        const datasets = {
+            'departement': {
+                name: "Aude (Global)", surface: "6 139",
+                distribution: [35, 40, 10, 1, 2, 5, 3, 4], 
+                colors: ['#A0D9B4', '#FBE7C6', '#E8F5E9', '#AECBFA', '#81C784', '#FFCCBC', '#EF5350', '#E1BEE7']
+            },
+            'interco': {
+                name: "Agglo Carcassonne", surface: "1 050",
+                distribution: [20, 50, 5, 2, 5, 10, 5, 3], 
+                colors: ['#A0D9B4', '#FBE7C6', '#E8F5E9', '#AECBFA', '#81C784', '#FFCCBC', '#EF5350', '#E1BEE7']
+            },
+            'commune': {
+                name: "Sélection Commune", surface: "65",
+                distribution: [10, 20, 5, 5, 10, 25, 15, 10], 
+                colors: ['#A0D9B4', '#FBE7C6', '#E8F5E9', '#AECBFA', '#81C784', '#FFCCBC', '#EF5350', '#E1BEE7']
+            }
         };
-        const colors = ['#A0D9B4', '#FBE7C6', '#E8F5E9', '#AECBFA', '#81C784', '#FFCCBC'];
 
-        function updateChart() {
-            const key = document.getElementById('scaleSelector').value;
-            const data = chartData[key];
-            document.getElementById('totalSurface').innerText = data.s;
-            let grad = "", curr = 0;
-            data.d.forEach((val, i) => {
-                grad += `${colors[i]} ${curr}% ${curr + val}%, `;
-                curr += val;
-            });
-            document.getElementById('donutChart').style.background = `conic-gradient(${grad.slice(0,-2)})`;
+        function updateChartFromSelector() {
+            const val = document.getElementById('scaleSelector').value;
+            updatePanelData(val);
         }
-        updateChart();
+
+        function updatePanelData(key) {
+            const data = datasets[key];
+            document.getElementById('panelTitle').innerText = data.name;
+            document.getElementById('totalSurface').innerText = data.surface;
+
+            let gradientStr = "";
+            let currentPercent = 0;
+            for(let i=0; i<data.distribution.length; i++) {
+                let val = data.distribution[i];
+                let color = data.colors[i];
+                let end = currentPercent + val;
+                gradientStr += `${color} ${currentPercent}% ${end}%, `;
+                currentPercent = end;
+            }
+            gradientStr = gradientStr.slice(0, -2);
+            document.getElementById('donutChart').style.background = `conic-gradient(${gradientStr})`;
+        }
     </script>
 </body>
 </html>
