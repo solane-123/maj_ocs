@@ -6,9 +6,14 @@
     <title>Aude Analytics - Final Fixed</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://unpkg.com/leaflet.vectorgrid@latest/dist/Leaflet.VectorGrid.bundled.js"></script>
+    
     <style>
         /* --- 1. VARIABLES --- */
         :root {
@@ -254,9 +259,14 @@
                     <div class="legend-item"><div class="color-dot" style="background:var(--c-nature)"></div>Nature</div>
                 </div>
             </div>
+            
             <div class="compare-wrapper">
-                <div id="map-left" class="map-split"><div class="map-badge-pill">OSO 2023 <span>(Ancien)</span></div></div>
-                <div id="map-right" class="map-split"><div class="map-badge-pill">COSIA 2024 <span>(Corrigé)</span></div></div>
+                <div id="map-left" class="map-split">
+                    <div class="map-badge-pill">OSO 2023 <span>(Ancien)</span></div>
+                </div>
+                <div id="map-right" class="map-split">
+                    <div class="map-badge-pill">COSIA 2024 <span>(Corrigé)</span></div>
+                </div>
             </div>
         </section>
 
@@ -354,100 +364,95 @@
         <div style="height:10vh;"></div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. SCROLL FIX (INTERSECTION OBSERVER)
-        // C'est cette partie qui règle votre problème de point orange.
+        // --- NAVIGATION ---
         function scrollToId(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
-
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.5 // Active le point quand la section est à 50% visible
-        };
-
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    // Retirer la classe active de tous les points
                     document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
-                    
-                    // Trouver le point correspondant à l'ID de la section visible
                     const activeId = entry.target.id;
-                    const activeDot = document.querySelector(`.dot[onclick*="${activeId}"]`);
-                    if(activeDot) activeDot.classList.add('active');
-
-                    // Resize maps (important pour Leaflet dans des div cachées/scrollées)
-                    if(activeId === 'page2') { mapLeft.invalidateSize(); mapRight.invalidateSize(); }
-                    if(activeId === 'page3') mapViz.invalidateSize();
+                    const dot = document.querySelector(`.dot[onclick*="${activeId}"]`);
+                    if(dot) dot.classList.add('active');
+                    // Refresh carto pour éviter les gris
+                    if(activeId === 'page2') { 
+                        setTimeout(() => { mapLeft.invalidateSize(); mapRight.invalidateSize(); }, 200); 
+                    }
                 }
             });
-        }, observerOptions);
+        }, { threshold: 0.5 });
+        document.querySelectorAll('.page-section').forEach(s => observer.observe(s));
 
-        document.querySelectorAll('.page-section').forEach(section => {
-            observer.observe(section);
-        });
-
-
-        // --- MAPS INIT ---
+        // --- PAGE 1 (MAP ACCUEIL) ---
         var mapHome = L.map('map-home', {zoomControl:false, attributionControl:false}).setView([43.1026, 2.4140], 9);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapHome);
         fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
         .then(r=>r.json()).then(d=>L.geoJSON(d,{style:{color:'#E89C48', weight:1, fillOpacity:0.1}}).addTo(mapHome));
 
-        // P2 (CÔTE À CÔTE)
-        var center=[43.2865, 1.9295], zoom=16;
-        var mapLeft = L.map('map-left', {zoomControl:false, attributionControl:false}).setView(center, zoom);
-        var mapRight = L.map('map-right', {zoomControl:false, attributionControl:false}).setView(center, zoom);
-        var satUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        L.tileLayer(satUrl).addTo(mapLeft); L.tileLayer(satUrl).addTo(mapRight);
+        // --- PAGE 2 (COMPARATEUR) ---
+        var center = [43.18, 2.35]; 
+        var zoomLvl = 15;
         
-        mapLeft.on('move', ()=>mapRight.setView(mapLeft.getCenter(), mapLeft.getZoom(), {animate:false}));
-        mapRight.on('move', ()=>mapLeft.setView(mapRight.getCenter(), mapRight.getZoom(), {animate:false}));
-        
-        const pCoords = [[43.2865,1.9280],[43.2875,1.9290],[43.2868,1.9300],[43.2858,1.9290]];
-        L.polygon(pCoords, {color:'white', weight:2, fillColor:'#D64541', fillOpacity:0.7}).addTo(mapLeft); // Rouge
-        L.polygon(pCoords, {color:'white', weight:2, fillColor:'#88C425', fillOpacity:0.7}).addTo(mapRight); // Vert
+        var mapLeft = L.map('map-left', {zoomControl:false, attributionControl:false}).setView(center, zoomLvl);
+        var mapRight = L.map('map-right', {zoomControl:false, attributionControl:false}).setView(center, zoomLvl);
 
-        // P3
+        // Fond satellite
+        var satUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        L.tileLayer(satUrl).addTo(mapLeft);
+        L.tileLayer(satUrl).addTo(mapRight);
+
+        // Synchro
+        mapLeft.on('move', () => mapRight.setView(mapLeft.getCenter(), mapLeft.getZoom(), {animate:false}));
+        mapRight.on('move', () => mapLeft.setView(mapRight.getCenter(), mapRight.getZoom(), {animate:false}));
+
+        // STYLE OCS (Couleurs)
+        function styleOCS(feature) {
+            // Détection automatique du nom de la colonne (Code, Classe, Gridcode...)
+            var p = feature.properties;
+            var type = p.Classe || p.classe || p.CODE || p.gridcode || p.c_ocs || 1; 
+            
+            var color = '#D64541'; // Défaut rouge (Artif)
+            
+            // Logique floue pour attraper tes valeurs
+            var tStr = String(type).toLowerCase();
+            if (tStr == '2' || tStr.includes('agri')) color = '#F2CA27'; // Jaune
+            if (tStr == '3' || tStr.includes('for') || tStr.includes('nat')) color = '#88C425'; // Vert
+            if (tStr == '4' || tStr.includes('eau')) color = '#4A90E2'; // Bleu
+
+            return { fillColor: color, weight: 1, color: color, fillOpacity: 0.6 };
+        }
+
+        // CHARGEMENT SECURISÉ
+        function loadLayer(url, mapInstance, styleFunc, name) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Fichier introuvable (${response.status})`);
+                    return response.json();
+                })
+                .then(data => {
+                    var layer = L.geoJSON(data, { style: styleFunc }).addTo(mapInstance);
+                    if(name === 'OSO') mapLeft.fitBounds(layer.getBounds()); // Zoom auto sur OSO
+                    console.log(name + " chargé !");
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(`ERREUR CHARGEMENT ${name} :\n\n1. Vérifie que le fichier "${url}" existe bien dans le dossier.\n2. Vérifie qu'il est bien converti en .geojson (pas .gpkg).\n3. Vérifie que tu es bien sur http://localhost:8000`);
+                });
+        }
+
+        // Lancement des chargements
+        // Vérifie que ces noms de fichiers sont EXACTEMENT ceux dans ton dossier 'donne'
+        loadLayer('donne/OSO_2023_DALLE_2.geojson', mapLeft, styleOCS, 'OSO');
+        loadLayer('donne/COSIA_2024_DALLE_2.geojson', mapRight, styleOCS, 'COSIA');
+        
+        // Cadastre (Transparent)
+        var styleCadastre = { color: '#FFF', weight: 0.8, fill: false, opacity: 0.5 };
+        loadLayer('donne/CADASTRE_DALLE_2.geojson', mapLeft, styleCadastre, 'Cadastre');
+        loadLayer('donne/CADASTRE_DALLE_2.geojson', mapRight, styleCadastre, 'Cadastre');
+
+        // --- PAGE 3 (Minimal) ---
         var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.1026, 2.4140], 9);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapViz);
-        var audeLayer;
-        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
-        .then(r=>r.json()).then(d=>{ audeLayer=L.geoJSON(d,{style:{color:'#E89C48', weight:2, fillOpacity:0.1}}).addTo(mapViz); });
-
-        // LOGIQUE P3
-        const data = {
-            'global': { coords:[43.1026, 2.4140], z:9, title:"Aude Global", surf:"6 139", ind:"3.45", b1:[37,41,5], b2:[35,50,7] },
-            'carcassonne': { coords:[43.2121, 2.3537], z:12, title:"Carcassonne", surf:"65", ind:"2.10", b1:[15,30,45], b2:[12,35,40] },
-            'narbonne': { coords:[43.1837, 3.0042], z:12, title:"Narbonne", surf:"172", ind:"2.80", b1:[20,35,30], b2:[22,38,28] },
-            'limoux': { coords:[43.0537, 2.2173], z:13, title:"Limoux", surf:"32", ind:"3.10", b1:[40,40,10], b2:[38,45,11] }
-        };
-
-        function updateDashboard(k) {
-            const d = data[k] || data['global'];
-            mapViz.flyTo(d.coords, d.z, {duration:1.5});
-            document.getElementById('dashTitle').innerText = d.title;
-            document.getElementById('kpiSurf').innerText = d.surf;
-            document.getElementById('kpiInd').innerText = d.ind;
-            
-            setBar('b1-for', d.b1[0]); setBar('b1-agr', d.b1[1]); setBar('b1-art', d.b1[2]);
-            setBar('b2-for', d.b2[0]); setBar('b2-agr', d.b2[1]); setBar('b2-art', d.b2[2]);
-            
-            if(audeLayer) audeLayer.setStyle({fillOpacity: k!=='global'?0.05:0.1});
-        }
-
-        function setBar(id, val) { document.getElementById(id).style.width = val+'%'; }
-        
-        function toggleFilter(type, btn) {
-            btn.classList.toggle('inactive');
-            document.querySelectorAll('.row-' + type).forEach(r => r.classList.toggle('dimmed'));
-        }
-
-        function activateDeck(el) {
-            document.querySelectorAll('.deck-card').forEach(c=>c.classList.remove('active'));
-            el.classList.add('active');
-        }
     </script>
 </body>
 </html>

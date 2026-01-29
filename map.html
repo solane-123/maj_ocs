@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Wiz - Explorateur</title>
+    <title>Geo Wiz - Explorateur Détaillé</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -15,36 +15,93 @@
             --color-dark: #1A3C34;
             --ease-premium: cubic-bezier(0.25, 1, 0.5, 1);
             
-            /* Vos couleurs d'origine */
-            --sol-texture: #B5C99A;
-            --sol-famille: #F2CA27;
-            --sol-epais: #E07A5F;
-            --sol-drain: #3D5A80;
+            /* Couleurs MOS */
+            --mos-foret: #A0D9B4; --mos-agri: #FBE7C6; --mos-nature: #E8F5E9;
+            --mos-eau: #AECBFA; --mos-artif: #81C784; --mos-habitat: #FFCCBC;
+            
+            /* Couleurs Fiche Sol */
+            --sol-texture: #B5C99A; --sol-famille: #F2CA27; --sol-epais: #E07A5F; --sol-drain: #3D5A80;
         }
 
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'DM Sans', sans-serif; overflow: hidden; background: #e5e5e5; }
         .app-container { display: flex; height: 100vh; width: 100vw; }
 
+        /* SIDEBAR GAUCHE */
         .left-sidebar { width: 60px; background: var(--color-dark); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 500; }
         .nav-icon { color: rgba(255,255,255,0.6); font-size: 1.2rem; margin-bottom: 25px; cursor: pointer; transition: 0.3s; display:flex; justify-content:center; width:100%; text-decoration:none;}
         .nav-icon:hover { color: #fff; transform: scale(1.1); }
         .nav-sep { width: 30px; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 25px; }
 
+        /* MAP AREA */
         .map-area { flex: 1; position: relative; }
         #map { width: 100%; height: 100%; }
-        
         .map-guide { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(26, 60, 52, 0.95); color: white; padding: 12px 25px; border-radius: 50px; font-weight: 500; pointer-events: none; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: opacity 0.5s; display: flex; align-items: center; gap: 10px; }
 
-        .right-sidebar { width: 420px; background: white; border-left: 1px solid #ddd; display: flex; flex-direction: column; z-index: 500; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
-        .panel-view { padding: 25px; height: 100%; display: flex; flex-direction: column; animation: fadeIn 0.4s var(--ease-premium); box-sizing: border-box; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* SIDEBAR DROITE */
+        .right-sidebar { width: 480px; background: white; border-left: 1px solid #ddd; display: flex; flex-direction: column; z-index: 500; box-shadow: -5px 0 20px rgba(0,0,0,0.05); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        
+        .panel-view { height: 100%; display: flex; flex-direction: column; animation: fadeIn 0.4s var(--ease-premium); box-sizing: border-box; overflow-y: hidden; }
+        .panel-scroll-content { padding: 25px; overflow-y: auto; flex: 1; }
         .hidden { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        /* HEADER & TABS */
+        .panel-header-wrapper { background: #fff; border-bottom: 1px solid #eee; padding-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); z-index: 10; }
+        .panel-top-row { display: flex; justify-content: space-between; align-items: center; padding: 0 25px 15px 25px; }
         .panel-title { font-family: 'Playfair Display'; font-size: 1.4rem; color: var(--color-dark); margin: 0; font-weight: 700; }
         .close-btn { cursor: pointer; color: #999; transition: 0.2s; font-size: 1.2rem; }
+        .close-btn:hover { color: #D64541; }
+
+        .tabs-nav { display: flex; padding: 0 25px; gap: 20px; }
+        .tab-link { 
+            padding: 10px 0; font-size: 0.85rem; font-weight: 600; color: #999; 
+            background: none; border: none; border-bottom: 3px solid transparent; 
+            cursor: pointer; transition: all 0.3s; 
+        }
+        .tab-link:hover { color: var(--color-vivid); }
+        .tab-link.active { color: var(--color-dark); border-bottom-color: var(--color-dark); }
+
+        /* TAB 1 CONTENT */
+        .chart-wrapper { position: relative; width: 200px; height: 200px; margin: 0 auto 20px auto; }
+        svg.donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+        path.donut-segment { transition: all 0.3s var(--ease-premium); cursor: pointer; stroke-linejoin: round; }
+        path.donut-segment:hover { stroke-width: 8 !important; opacity: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.2)); }
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: 150px;}
+        .val-big { font-size: 1.6rem; font-weight: 700; color: #333; line-height: 1; display: block; }
         
-        /* Styles spécifiques Barres (Vos styles originaux) */
+        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 30px; }
+        .leg-item { display: flex; align-items: center; font-size: 0.75rem; color: #666; }
+        .leg-color { width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; flex-shrink: 0; }
+
+        .evolution-section { border-top: 1px solid #eee; padding-top: 25px; margin-top: 10px; }
+        .evo-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.8rem; height: 20px; }
+        .evo-label { width: 90px; text-align: right; padding-right: 10px; color: #666; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .evo-track-container { flex: 1; display: flex; align-items: center; position: relative; height: 100%; border-left: 1px solid #ccc; }
+        .evo-bar { height: 12px; border-radius: 2px; transition: width 1s var(--ease-premium); position: absolute; top: 50%; transform: translateY(-50%); }
+        .evo-bar.neg { right: 100%; transform-origin: right; border-radius: 2px 0 0 2px; }
+        .evo-bar.pos { left: 0; transform-origin: left; border-radius: 0 2px 2px 0; }
+        .evo-value { width: 40px; padding-left: 8px; font-weight: 700; font-size: 0.75rem; color: #333; }
+
+        /* TAB 2 CONTENT (PHOTO) */
+        .detail-text { font-size: 0.9rem; line-height: 1.6; color: #555; margin-bottom: 25px; }
+        .detail-subtitle { font-family: 'Playfair Display'; font-weight: 700; font-size: 1rem; color: var(--color-dark); margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        
+        .mini-map-container {
+            width: 100%; height: 280px; 
+            border-radius: 8px; overflow: hidden; 
+            position: relative; margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid white;
+        }
+        #mini-map { width: 100%; height: 100%; }
+        /* Réticule de visée */
+        .mini-map-crosshair {
+            position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
+            transform: translate(-50%, -50%); border: 2px dashed rgba(255,255,255,0.7);
+            border-radius: 50%; pointer-events: none; z-index: 1000;
+        }
+        .mini-map-caption { font-size: 0.75rem; color: #888; font-style: italic; margin-top: 5px; text-align: right; }
+
+        /* STYLES BARRES (ACCUEIL) */
         .info-block { display: flex; gap: 15px; margin-bottom: 25px; }
         .info-icon { width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
         .info-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -52,32 +109,17 @@
         .info-val { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
         .p-track { width: 100%; height: 4px; background: #eee; border-radius: 2px; }
         .p-fill { height: 100%; border-radius: 2px; }
-
         .th-tex .info-icon { background: var(--sol-texture); } .th-tex .info-val { color: var(--sol-texture); } .th-tex .p-fill { background: var(--sol-texture); }
         .th-fam .info-icon { background: var(--sol-famille); } .th-fam .info-val { color: var(--sol-famille); } .th-fam .p-fill { background: var(--sol-famille); }
         .th-epa .info-icon { background: var(--sol-epais); } .th-epa .info-val { color: var(--sol-epais); } .th-epa .p-fill { background: var(--sol-epais); }
         .th-dra .info-icon { background: var(--sol-drain); } .th-dra .info-val { color: var(--sol-drain); } .th-dra .p-fill { background: var(--sol-drain); }
-
-        /* Chart Styles */
-        .chart-wrapper { position: relative; width: 240px; height: 240px; margin: 0 auto 20px auto; }
-        svg.donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-        path.donut-segment { transition: all 0.3s var(--ease-premium); cursor: pointer; stroke-linejoin: round; }
-        path.donut-segment:hover { stroke-width: 8 !important; opacity: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.2)); }
-        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: 150px;}
-        .val-big { font-size: 1.8rem; font-weight: 700; color: #333; line-height: 1; display: block; }
-        
-        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; padding-right: 5px; }
-        .leg-item { display: flex; align-items: center; font-size: 0.75rem; color: #666; padding: 5px; }
-        .leg-color { width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; flex-shrink: 0; }
-        
-        /* Selecteur Scale */
-        .scale-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'DM Sans'; font-weight: 700; color: var(--color-dark); margin-bottom: 20px; outline:none;}
 
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        
         <aside class="left-sidebar">
             <a href="visualisation.html" class="nav-icon"><i class="fas fa-arrow-left"></i></a>
             <div class="nav-sep"></div>
@@ -94,69 +136,85 @@
             </div>
             <div style="position:absolute; top:20px; left:20px; z-index:400; background:white; padding:10px 15px; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; align-items:center; gap:10px;">
                 <i class="fas fa-search" style="color:#999;"></i>
-                <input type="text" placeholder="Rechercher..." style="border:none; outline:none; font-family:'DM Sans'; width:200px;">
+                <input type="text" placeholder="Rechercher une parcelle..." style="border:none; outline:none; font-family:'DM Sans'; width:200px;">
             </div>
         </main>
 
         <aside class="right-sidebar">
             
             <div id="view-bars" class="panel-view">
-                <div class="panel-header">
-                    <div class="panel-title">Fiche Pédologique</div>
-                </div>
-                
-                <div class="info-block th-tex">
-                    <div class="info-icon"><i class="fas fa-border-all"></i></div> 
-                    <div class="info-content">
-                        <span class="info-lbl">Texture</span><span class="info-val">Limon (40%)</span>
-                        <div class="p-track"><div class="p-fill" style="width:40%"></div></div>
+                <div class="panel-header-wrapper" style="margin-bottom:20px; padding-bottom:0;">
+                    <div class="panel-top-row">
+                        <div class="panel-title">Fiche Pédologique</div>
                     </div>
                 </div>
-                <div class="info-block th-fam">
-                    <div class="info-icon"><i class="fas fa-circle-nodes"></i></div> 
-                    <div class="info-content">
-                        <span class="info-lbl">Famille</span><span class="info-val">Talweg (55%)</span>
-                        <div class="p-track"><div class="p-fill" style="width:55%"></div></div>
-                    </div>
-                </div>
-                <div class="info-block th-epa">
-                    <div class="info-icon"><i class="fas fa-align-justify"></i></div> 
-                    <div class="info-content">
-                        <span class="info-lbl">Épaisseur</span><span class="info-val">80-100cm (35%)</span>
-                        <div class="p-track"><div class="p-fill" style="width:35%"></div></div>
-                    </div>
-                </div>
-                <div class="info-block th-dra">
-                    <div class="info-icon"><i class="fas fa-tint"></i></div> 
-                    <div class="info-content">
-                        <span class="info-lbl">Drainage</span><span class="info-val">Favorable (50%)</span>
-                        <div class="p-track"><div class="p-fill" style="width:50%"></div></div>
+                <div class="panel-scroll-content">
+                    <div class="info-block th-tex"><div class="info-icon"><i class="fas fa-border-all"></i></div><div class="info-content"><span class="info-lbl">Texture</span><span class="info-val">Limon (40%)</span><div class="p-track"><div class="p-fill" style="width:40%"></div></div></div></div>
+                    <div class="info-block th-fam"><div class="info-icon"><i class="fas fa-circle-nodes"></i></div><div class="info-content"><span class="info-lbl">Famille</span><span class="info-val">Talweg (55%)</span><div class="p-track"><div class="p-fill" style="width:55%"></div></div></div></div>
+                    <div class="info-block th-epa"><div class="info-icon"><i class="fas fa-align-justify"></i></div><div class="info-content"><span class="info-lbl">Épaisseur</span><span class="info-val">80-100cm (35%)</span><div class="p-track"><div class="p-fill" style="width:35%"></div></div></div></div>
+                    <div class="info-block th-dra"><div class="info-icon"><i class="fas fa-tint"></i></div><div class="info-content"><span class="info-lbl">Drainage</span><span class="info-val">Favorable (50%)</span><div class="p-track"><div class="p-fill" style="width:50%"></div></div></div></div>
+                    <div style="margin-top:20px; background:#f0f2f5; padding:20px; border-radius:8px; font-size:0.85rem; color:#666;">
+                        <strong>Exploration :</strong> Cliquez sur une commune pour afficher le bilan d'occupation et la vue détaillée.
                     </div>
                 </div>
             </div>
 
-            <div id="view-chart" class="panel-view hidden">
-                <div class="panel-header">
-                    <div class="panel-title" id="zoneTitle">--</div>
-                    <i class="fas fa-times close-btn" onclick="resetView()"></i>
-                </div>
+            <div id="view-chart" class="panel-view hidden" style="padding:0;">
                 
-                <select class="scale-select">
-                    <option>Commune (Sélection)</option>
-                    <option>Intercommunalité</option>
-                    <option>Département</option>
-                </select>
-
-                <div class="chart-wrapper">
-                    <svg id="interactiveDonut" class="donut-svg" viewBox="0 0 40 40"></svg>
-                    <div class="center-text">
-                        <span class="val-big" id="centerValue">--</span>
-                        <span style="font-size:0.7rem; color:#888; text-transform:uppercase;">Surface</span>
+                <div class="panel-header-wrapper">
+                    <div class="panel-top-row">
+                        <div class="panel-title" id="zoneTitle">--</div>
+                        <i class="fas fa-times close-btn" onclick="resetView()"></i>
+                    </div>
+                    <div class="tabs-nav">
+                        <button class="tab-link active" onclick="switchTab('bilan')">Bilan territorial</button>
+                        <button class="tab-link" onclick="switchTab('detail')">Représentation détaillée</button>
                     </div>
                 </div>
 
-                <div class="legend-grid" id="legendContainer"></div>
-                <button onclick="resetView()" style="margin-top:20px; width:100%; padding:12px; border:none; background:#f0f0f0; border-radius:6px; cursor:pointer; font-weight:700; color:#555;">Retour</button>
+                <div class="panel-scroll-content">
+                    
+                    <div id="tab-bilan">
+                        <div class="chart-wrapper">
+                            <svg id="interactiveDonut" class="donut-svg" viewBox="0 0 40 40"></svg>
+                            <div class="center-text">
+                                <span class="val-big" id="centerValue">--</span>
+                                <span style="font-size:0.7rem; color:#888; text-transform:uppercase;">Surface</span>
+                            </div>
+                        </div>
+                        <div class="legend-grid" id="legendContainer"></div>
+                        <div class="evolution-section">
+                            <span class="detail-subtitle" style="border:none;">Évolution Annuelle (2017-2022)</span>
+                            <div id="evolutionContainer"></div>
+                        </div>
+                    </div>
+
+                    <div id="tab-detail" class="hidden">
+                        <p class="detail-text">
+                            La nomenclature du Mos offre une grande précision thématique. 
+                            Vous visualisez ci-dessous la photographie aérienne en temps réel de la zone sélectionnée.
+                        </p>
+                        
+                        <span class="detail-subtitle">Photographie Aérienne (Synchro)</span>
+                        <p class="detail-text" style="font-size:0.8rem; margin-top:5px; margin-bottom:10px;">
+                            Déplacez la carte principale ou cliquez sur une zone pour mettre à jour cette vue.
+                        </p>
+                        
+                        <div class="mini-map-container">
+                            <div id="mini-map"></div>
+                            <div class="mini-map-crosshair"></div>
+                        </div>
+                        <div class="mini-map-caption">Source: Esri World Imagery (Vue Satellite)</div>
+
+                        <span class="detail-subtitle" style="margin-top:20px;">Détails Cadastraux</span>
+                        <div style="font-size:0.85rem; color:#666; display:flex; flex-direction:column; gap:8px;">
+                            <div><strong>Type :</strong> Espaces verts urbains</div>
+                            <div><strong>Surface :</strong> <span id="detailSurface">--</span></div>
+                            <div><strong>Code :</strong> 1.4.1 (Nomenclature MOS)</div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
         </aside>
@@ -164,15 +222,39 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // --- 1. MAIN MAP ---
         var map = L.map('map', {zoomControl:false}).setView([43.1026, 2.4140], 9);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         L.control.zoom({position:'bottomright'}).addTo(map);
 
+        // --- 2. MINI MAP JUMELÉE ---
+        var miniMap = L.map('mini-map', {
+            zoomControl: false, 
+            attributionControl: false,
+            dragging: false, // On désactive pour forcer la synchro
+            scrollWheelZoom: false, 
+            doubleClickZoom: false, 
+            boxZoom: false
+        }).setView([43.1026, 2.4140], 9);
+        
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(miniMap);
+        var miniGeoJsonLayer = L.layerGroup().addTo(miniMap);
+
+        // --- 3. MOTEUR DE SYNCHRONISATION ---
+        // C'est ici que la magie opère
+        map.on('move', function() {
+            var center = map.getCenter();
+            var zoom = map.getZoom();
+            // La mini map suit exactement la grande
+            miniMap.setView(center, zoom, {animate: false});
+        });
+
+        // --- 4. DATA ---
         const categories = [
-            { label: 'Forêts', color: '#56B880' }, { label: 'Agricole', color: '#F2CA27' },
-            { label: 'Nature', color: '#88C425' }, { label: 'Eau', color: '#4A90E2' },
-            { label: 'Bâti', color: '#D64541' }, { label: 'Habitat', color: '#FFCCBC' },
-            { label: 'Activités', color: '#E1BEE7' }
+            { label: 'Forêts', color: '#A0D9B4' }, { label: 'Agricole', color: '#FBE7C6' },
+            { label: 'Nature', color: '#E8F5E9' }, { label: 'Eau', color: '#AECBFA' },
+            { label: 'Artif.', color: '#81C784' }, { label: 'Hab. Ind.', color: '#FFCCBC' },
+            { label: 'Hab. Col.', color: '#EF5350' }, { label: 'Activités', color: '#E1BEE7' }
         ];
 
         var audeLayer;
@@ -182,12 +264,14 @@
                     style: { color: '#E89C48', weight: 2, fillOpacity: 0.1 },
                     onEachFeature: function(feature, layer) {
                         layer.on('click', function(e) {
-                            L.DomEvent.stopPropagation(e);
+                            L.DomEvent.stopPropagation(e); // Stop bubbling
                             audeLayer.setStyle({fillOpacity: 0.1, color:'#E89C48'});
                             e.target.setStyle({fillOpacity: 0.3, color:'#D64541'});
                             map.fitBounds(e.target.getBounds());
                             document.getElementById('uxGuide').style.opacity = '0';
-                            showChart(feature.properties.nom || "Zone Sélectionnée");
+                            
+                            // Load Panel & Sync
+                            showChart(feature.properties.nom || "Zone Sélectionnée", feature);
                         });
                     }
                 }).addTo(map);
@@ -201,29 +285,63 @@
             document.getElementById('uxGuide').style.opacity = '1';
         }
 
-        function showChart(name) {
+        function showChart(name, feature) {
             document.getElementById('view-bars').classList.add('hidden');
             document.getElementById('view-chart').classList.remove('hidden');
             document.getElementById('zoneTitle').innerText = name;
             
-            const vals = Array.from({length: 6}, () => Math.floor(Math.random() * 20) + 2);
+            // Fake Data Generation
+            const vals = Array.from({length: 8}, () => Math.floor(Math.random() * 20) + 2);
             const total = vals.reduce((a,b)=>a+b,0);
             const percents = vals.map(v => Math.round((v/total)*100));
             drawDonut(percents, total + " ha");
+            document.getElementById('detailSurface').innerText = total + " ha";
+
+            const evoData = categories.map(cat => ({
+                label: cat.label, color: cat.color, value: Math.floor(Math.random() * 200) - 100 
+            }));
+            drawEvolution(evoData);
+
+            // Sync Mini Map Focus
+            updateMiniMapFeature(feature);
         }
 
+        function updateMiniMapFeature(feature) {
+            miniGeoJsonLayer.clearLayers();
+            // Dessine le contour blanc sur la vue satellite
+            var layer = L.geoJSON(feature, {
+                style: { color: 'white', weight: 3, fillOpacity: 0, opacity: 1 }
+            });
+            miniGeoJsonLayer.addLayer(layer);
+            // La vue est gérée par le sync 'move', mais on peut forcer un recentrage initial
+            // miniMap.fitBounds(layer.getBounds()); 
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tabName === 'bilan') {
+                document.getElementById('tab-bilan').classList.remove('hidden');
+                document.getElementById('tab-detail').classList.add('hidden');
+            } else {
+                document.getElementById('tab-bilan').classList.add('hidden');
+                document.getElementById('tab-detail').classList.remove('hidden');
+                // Force le rafraîchissement Leaflet quand l'onglet devient visible
+                setTimeout(() => { miniMap.invalidateSize(); }, 100);
+            }
+        }
+
+        // --- GRAPHS ---
         function drawDonut(values, totalStr) {
             const svg = document.getElementById('interactiveDonut');
             const legContainer = document.getElementById('legendContainer');
             svg.innerHTML = ''; legContainer.innerHTML = '';
-
-            const cx=20, cy=20, r=15.915, stroke=4;
-            let acc = 0;
+            const cx=20, cy=20, r=15.915, stroke=4; let acc = 0;
 
             values.forEach((pct, i) => {
-                const cat = categories[i] || {label:'Autre', color:'#ccc'};
+                const cat = categories[i];
                 if(pct <= 0) return;
-                
                 const startA = 2 * Math.PI * (acc / 100);
                 const endA = 2 * Math.PI * ((acc + pct) / 100);
                 const startX = cx + r * Math.cos(startA);
@@ -232,28 +350,42 @@
                 const endY = cy + r * Math.sin(endA);
                 const largeArc = pct > 50 ? 1 : 0;
                 acc += pct;
-
                 const d = `M ${startX} ${startY} A ${r} ${r} 0 ${largeArc} 1 ${endX} ${endY}`;
                 const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 path.setAttribute('d', d); path.setAttribute('fill', 'none');
                 path.setAttribute('stroke', cat.color); path.setAttribute('stroke-width', stroke);
                 path.setAttribute('class', 'donut-segment');
-
-                path.addEventListener('mouseenter', () => {
-                    document.getElementById('centerValue').innerText = pct + "%";
-                });
-                path.addEventListener('mouseleave', () => {
-                    document.getElementById('centerValue').innerText = totalStr;
-                });
-
+                path.addEventListener('mouseenter', () => { document.getElementById('centerValue').innerText = pct + "%"; });
+                path.addEventListener('mouseleave', () => { document.getElementById('centerValue').innerText = totalStr; });
                 svg.appendChild(path);
-
                 const div = document.createElement('div');
                 div.className = 'leg-item';
                 div.innerHTML = `<div class="leg-color" style="background:${cat.color}"></div>${cat.label} <b>${pct}%</b>`;
                 legContainer.appendChild(div);
             });
             document.getElementById('centerValue').innerText = totalStr;
+        }
+
+        function drawEvolution(data) {
+            const container = document.getElementById('evolutionContainer');
+            container.innerHTML = '';
+            const maxVal = Math.max(...data.map(d => Math.abs(d.value)));
+            data.forEach(item => {
+                if(Math.abs(item.value) < 5) return;
+                const isNeg = item.value < 0;
+                const widthPct = (Math.abs(item.value) / maxVal) * 100;
+                const row = document.createElement('div');
+                row.className = 'evo-row';
+                row.innerHTML = `
+                    <div class="evo-label">${item.label}</div>
+                    <div class="evo-track-container">
+                        <div class="evo-bar ${isNeg ? 'neg' : 'pos'}" style="width: 0%; background-color: ${item.color};"></div>
+                    </div>
+                    <div class="evo-value">${item.value > 0 ? '+' : ''}${item.value}</div>
+                `;
+                container.appendChild(row);
+                setTimeout(() => { row.querySelector('.evo-bar').style.width = (widthPct / 2) + '%'; }, 100);
+            });
         }
     </script>
 </body>
