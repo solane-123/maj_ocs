@@ -275,48 +275,39 @@
                 <div class="p3-map-area">
                     <div class="map-overlay">
                         <div class="capsule-select-wrapper">
-                            <select class="capsule-select" onchange="updateDashboard(this.value)">
-                                <option value="global">Vue Départementale</option>
-                                <option value="carcassonne">Carcassonne</option>
-                                <option value="narbonne">Narbonne</option>
-                                <option value="limoux">Limoux</option>
+                            <select id="dalleSelector" class="capsule-select" onchange="updatePage3(this.value)">
+                                <option value="" disabled selected>Chargement...</option>
                             </select>
                         </div>
+                        
                         <div class="filter-row">
-                            <button class="filter-btn" style="background:var(--c-water)" onclick="toggleFilter('water', this)">Eau</button>
-                            <button class="filter-btn" style="background:var(--c-nature)" onclick="toggleFilter('forest', this)">Forêt</button>
-                            <button class="filter-btn" style="background:var(--c-agri)" onclick="toggleFilter('agri', this)">Agri</button>
-                            <button class="filter-btn" style="background:var(--c-artif)" onclick="toggleFilter('artif', this)">Bâti</button>
+                            <button class="filter-btn" style="background:var(--c-artif)" onclick="alert('Filtre Bâti')">Bâti</button>
+                            <button class="filter-btn" style="background:var(--c-agri)" onclick="alert('Filtre Agri')">Agri</button>
+                            <button class="filter-btn" style="background:var(--c-nature)" onclick="alert('Filtre Nature')">Nature</button>
                         </div>
                     </div>
                     <div id="map-viz"></div>
                 </div>
 
                 <div class="p3-deck-area">
-                    <span class="subtitle">Données Comparées</span>
-                    <h2 style="margin:0;" id="dashTitle">Aude Global</h2>
-                    <div class="kpi-row">
-                        <div class="kpi-box"><div class="kpi-val" id="kpiSurf">6 139</div><div class="kpi-lbl">Surface (km²)</div></div>
-                        <div class="kpi-box"><div class="kpi-val" id="kpiInd">3.45</div><div class="kpi-lbl">Indice Pression</div></div>
-                    </div>
+                    <span class="subtitle">Statistiques par Dalle</span>
+                    <h2 style="margin:0;" id="dashTitle">Vue Globale</h2>
+                    
                     <div class="deck-container">
                         <div class="deck-card active" onclick="activateDeck(this)">
-                            <div class="deck-header"><div class="deck-title">Données OSO (Ref)</div></div>
-                            <div class="chart-content">
-                                <div class="chart-row row-forest"><div class="chart-lbl">Forêt</div><div class="chart-bg"><div id="b1-for" class="chart-fill" style="width:37%; background:var(--c-nature)"></div></div><div class="chart-val">37%</div></div>
-                                <div class="chart-row row-agri"><div class="chart-lbl">Agri</div><div class="chart-bg"><div id="b1-agr" class="chart-fill" style="width:41%; background:var(--c-agri)"></div></div><div class="chart-val">41%</div></div>
-                                <div class="chart-row row-artif"><div class="chart-lbl">Bâti</div><div class="chart-bg"><div id="b1-art" class="chart-fill" style="width:5%; background:var(--c-artif)"></div></div><div class="chart-val">5%</div></div>
-                                <div class="chart-row row-water"><div class="chart-lbl">Eau</div><div class="chart-bg"><div class="chart-fill" style="width:1.1%; background:var(--c-water)"></div></div><div class="chart-val">1.1%</div></div>
+                            <div class="deck-header">
+                                <div class="deck-title">Indice de Confiance</div>
+                                <span style="font-size:0.7rem; color:#888;">Moyenne (0-100)</span>
                             </div>
+                            <div class="chart-content" id="chart-confiance"></div>
                         </div>
+
                         <div class="deck-card" onclick="activateDeck(this)">
-                            <div class="deck-header"><div class="deck-title">Données CLC</div></div>
-                            <div class="chart-content">
-                                <div class="chart-row row-forest"><div class="chart-lbl">Forêt</div><div class="chart-bg"><div id="b2-for" class="chart-fill" style="width:35%; background:var(--c-nature)"></div></div><div class="chart-val">35%</div></div>
-                                <div class="chart-row row-agri"><div class="chart-lbl">Agri</div><div class="chart-bg"><div id="b2-agr" class="chart-fill" style="width:50%; background:var(--c-agri)"></div></div><div class="chart-val">50%</div></div>
-                                <div class="chart-row row-artif"><div class="chart-lbl">Bâti</div><div class="chart-bg"><div id="b2-art" class="chart-fill" style="width:7%; background:var(--c-artif)"></div></div><div class="chart-val">7%</div></div>
-                                <div class="chart-row row-water"><div class="chart-lbl">Eau</div><div class="chart-bg"><div class="chart-fill" style="width:0.7%; background:var(--c-water)"></div></div><div class="chart-val">0.7%</div></div>
+                            <div class="deck-header">
+                                <div class="deck-title">Sources d'Accord</div>
+                                <span style="font-size:0.7rem; color:#888;">Moyenne Nb Sources</span>
                             </div>
+                            <div class="chart-content" id="chart-sources"></div>
                         </div>
                     </div>
                 </div>
@@ -512,9 +503,178 @@
         var styleCadastre = { color: '#FFFFFF', weight: 1, fill: false, opacity: 0.5 };
         loadLayer('donne/CADASTRE_DALLE_2.geojson', mapLeft, styleCadastre, 'Cadastre');
         loadLayer('donne/CADASTRE_DALLE_2.geojson', mapRight, styleCadastre, 'Cadastre');
-        // --- PAGE 3 (Minimal) ---
-        var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.1026, 2.4140], 9);
+       // ---------------------------------------------------------
+        // --- 4. PAGE 3 : DASHBOARD ANALYTIQUE (FINAL) ---
+        // ---------------------------------------------------------
+
+        var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.212, 2.355], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapViz);
+        
+        // --- CONFIGURATION ---
+        // C'est ici qu'on met le nom que tu as trouvé !
+        var DALLE_ID_KEY = 'DALLE'; 
+        
+        var globalGeoData = null;
+        var vizLayer = null;
+
+        // A. CHARGEMENT
+        fetch('donne/GLOBAL_DALLES.geojson')
+            .then(r => r.json())
+            .then(data => {
+                globalGeoData = data;
+                
+                // 1. Remplir le menu avec les numéros de DALLE trouvés
+                populateDalleSelector(data);
+
+                // 2. Lancer l'affichage sur la première dalle de la liste
+                var select = document.getElementById('dalleSelector');
+                if(select.options.length > 0) {
+                    // On sélectionne le premier et on lance la mise à jour
+                    select.selectedIndex = 0;
+                    updatePage3(select.value);
+                }
+            })
+            .catch(e => console.error("Erreur chargement GLOBAL:", e));
+
+
+        // B. CRÉATION DU MENU DÉROULANT
+        function populateDalleSelector(data) {
+            var select = document.getElementById('dalleSelector');
+            select.innerHTML = ""; // On vide le "Chargement..."
+
+            var dalles = new Set();
+            data.features.forEach(f => {
+                // On récupère la valeur dans la colonne 'DALLE'
+                var val = f.properties[DALLE_ID_KEY];
+                if(val !== undefined && val !== null) {
+                    dalles.add(val);
+                }
+            });
+
+            // On trie les numéros (1, 2, 3...) pour que ce soit propre
+            var sortedDalles = Array.from(dalles).sort((a,b) => a - b);
+
+            sortedDalles.forEach(d => {
+                var opt = document.createElement('option');
+                opt.value = d;
+                opt.innerText = "Dalle " + d; // Affiche "Dalle 1", "Dalle 2"...
+                select.appendChild(opt);
+            });
+        }
+
+
+        // C. MISE À JOUR (Quand tu changes le menu)
+        function updatePage3(dalleID) {
+            if(!globalGeoData) return;
+            document.getElementById('dashTitle').innerText = "Analyse Dalle " + dalleID;
+
+            // 1. FILTRE : On ne garde que les polygones de la dalle choisie
+            var filtered = globalGeoData.features.filter(f => 
+                String(f.properties[DALLE_ID_KEY]) === String(dalleID)
+            );
+
+            // 2. CARTE : On affiche les polygones colorés
+            if(vizLayer) mapViz.removeLayer(vizLayer);
+            
+            vizLayer = L.geoJSON({type:"FeatureCollection", features:filtered}, {
+                style: function(f) {
+                    var c = f.properties.CLASSE_FINALE || ""; // Colonne classe
+                    var col = '#D64541'; // Rouge (Bâti) par défaut
+
+                    // Détection des mots clés (Agri, Foret, Eau...)
+                    if(/Culture|Vigne|Agri/i.test(c)) col = '#F2CA27';
+                    if(/Foret|Bois|Pelouse|Nature/i.test(c)) col = '#88C425';
+                    if(/Eau/i.test(c)) col = '#4A90E2';
+                    
+                    return { fillColor: col, weight: 0.5, color: col, fillOpacity: 0.8 };
+                }
+            }).addTo(mapViz);
+            
+            // ZOOM AUTO : On se centre sur la dalle
+            if(filtered.length > 0) {
+                mapViz.fitBounds(vizLayer.getBounds());
+            }
+
+            // 3. GRAPHIQUES : On calcule et on affiche les stats
+            var stats = calculateStats(filtered);
+            renderChart('chart-confiance', stats, 'conf');
+            renderChart('chart-sources', stats, 'src');
+        }
+
+
+        // D. CALCULATEUR DE MOYENNES
+        function calculateStats(features) {
+            // Initialisation des compteurs
+            var grp = {
+                'Bâti':   { c:0, sumConf:0, sumSrc:0, color:'#D64541' },
+                'Agri':   { c:0, sumConf:0, sumSrc:0, color:'#F2CA27' },
+                'Nature': { c:0, sumConf:0, sumSrc:0, color:'#88C425' }
+            };
+
+            features.forEach(f => {
+                var p = f.properties;
+                var cat = 'Bâti';
+                var name = p.CLASSE_FINALE || "";
+                
+                // Catégorisation
+                if(/Culture|Vigne|Agri/i.test(name)) cat = 'Agri';
+                if(/Foret|Bois|Pelouse|Nature/i.test(name)) cat = 'Nature';
+
+                // Nettoyage des données (remplace virgule par point pour les décimales)
+                var conf = typeof p.INDICE_DE_CONFIANCE_FINAL === 'string' ? 
+                           parseFloat(p.INDICE_DE_CONFIANCE_FINAL.replace(',', '.')) : 
+                           p.INDICE_DE_CONFIANCE_FINAL;
+                           
+                var src = typeof p.NB_SOURCES_ACCORDS === 'string' ? 
+                          parseFloat(p.NB_SOURCES_ACCORDS.replace(',', '.')) : 
+                          p.NB_SOURCES_ACCORDS;
+
+                // On ajoute aux totaux
+                grp[cat].c++;
+                grp[cat].sumConf += (conf || 0);
+                grp[cat].sumSrc += (src || 0);
+            });
+
+            // On fait les moyennes finales
+            return Object.keys(grp).map(k => {
+                var g = grp[k];
+                return {
+                    label: k,
+                    color: g.color,
+                    conf: g.c ? (g.sumConf / g.c).toFixed(1) : 0,
+                    src: g.c ? (g.sumSrc / g.c).toFixed(1) : 0
+                };
+            });
+        }
+
+
+        // E. AFFICHAGE DES BARRES HTML
+        function renderChart(id, data, key) {
+            var el = document.getElementById(id);
+            el.innerHTML = "";
+            
+            // Échelle max : 100 pour la confiance, 5 pour les sources
+            var max = (key === 'conf') ? 100 : 5; 
+
+            data.forEach(d => {
+                var pct = (d[key] / max) * 100; // Largeur de la barre en %
+                
+                el.innerHTML += `
+                    <div class="chart-row">
+                        <div class="chart-lbl" style="width:50px;">${d.label}</div>
+                        <div class="chart-bg">
+                            <div class="chart-fill" style="width:${pct}%; background:${d.color}"></div>
+                        </div>
+                        <div class="chart-val">${d[key]}</div>
+                    </div>`;
+            });
+        }
+        
+        // Animation au clic sur les cartes stats
+        function activateDeck(el) {
+            document.querySelectorAll('.deck-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
     </script>
 </body>
 </html>
