@@ -631,36 +631,61 @@
             return { fillColor: col, weight: 0.5, color: col, fillOpacity: 0.8 };
         }
 
-        // --- F. STATS ---
+        // --- F. STATISTIQUES (CORRIGÉE : NOMS DE COLONNES EXACTS) ---
         function calculateStats(features) {
             var groups = {};
+
             features.forEach(f => {
                 var p = f.properties;
                 var rawName = p.CLASSE_FINALE || "Inconnu";
-                var cat = detectCategory(rawName); // On récupère la catégorie (ex: Forêt)
+                
+                // On récupère la catégorie (Forêt, Agri...)
+                var cat = detectCategory(rawName); 
                 var col = getCategoryColor(cat);
 
-                if(!groups[cat]) { // On groupe par Catégorie (Forêt, Agri...), pas par nom brut
+                // Initialisation si la catégorie n'existe pas encore
+                if(!groups[cat]) { 
                     groups[cat] = { count:0, sumConf:0, sumSrc:0, color: col };
                 }
 
-                var conf = typeof p.INDICE_DE_CONFIANCE_FINAL === 'string' ? parseFloat(p.INDICE_DE_CONFIANCE_FINAL.replace(',', '.')) : p.INDICE_DE_CONFIANCE_FINAL;
-                var src = typeof p.NB_SOURCES_ACCORDS === 'string' ? parseFloat(p.NB_SOURCES_ACCORDS.replace(',', '.')) : p.NB_SOURCES_ACCORDS;
+                // --- C'EST ICI QUE CA PLANTAIT AVANT ---
+                
+                // 1. INDICE_CONFIANCE_FINAL (Sans 'DE')
+                // On vérifie si c'est un nombre direct ou une chaine
+                var valConf = p.INDICE_CONFIANCE_FINAL; 
+                var conf = 0;
+                if (typeof valConf === 'number') {
+                    conf = valConf;
+                } else if (typeof valConf === 'string') {
+                    conf = parseFloat(valConf.replace(',', '.'));
+                }
 
+                // 2. NB_SOURCES_ACCORD (Singulier)
+                var valSrc = p.NB_SOURCES_ACCORD;
+                var src = 0;
+                if (typeof valSrc === 'number') {
+                    src = valSrc;
+                } else if (typeof valSrc === 'string') {
+                    src = parseFloat(valSrc.replace(',', '.'));
+                }
+
+                // On ajoute aux totaux
                 groups[cat].count++;
-                groups[cat].sumConf += (conf || 0);
-                groups[cat].sumSrc += (src || 0);
+                groups[cat].sumConf += conf;
+                groups[cat].sumSrc += src;
             });
 
+            // Calcul des moyennes et tri
             return Object.keys(groups).map(k => {
                 var g = groups[k];
                 return {
-                    label: k, // Affiche "Forêt", "Nature", "Agri"...
+                    label: k, // "Forêt", "Nature", "Agri"...
                     color: g.color,
+                    // toFixed(1) pour avoir 1 chiffre après la virgule (ex: 85.4)
                     conf: g.count ? (g.sumConf / g.count).toFixed(1) : 0,
                     src: g.count ? (g.sumSrc / g.count).toFixed(1) : 0
                 };
-            }).sort((a,b) => b.conf - a.conf);
+            }).sort((a,b) => b.conf - a.conf); // Tri par indice de confiance
         }
 
         function renderChart(id, data, key) {
