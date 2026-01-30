@@ -281,9 +281,12 @@
                         </div>
                         
                         <div class="filter-row">
-                            <button class="filter-btn" style="background:var(--c-artif)" onclick="alert('Filtre Bâti')">Bâti</button>
-                            <button class="filter-btn" style="background:var(--c-agri)" onclick="alert('Filtre Agri')">Agri</button>
-                            <button class="filter-btn" style="background:var(--c-nature)" onclick="alert('Filtre Nature')">Nature</button>
+                            <button class="filter-btn" style="background:var(--c-water)" onclick="toggleFilter('Eau', this)">Eau</button>
+                            <button class="filter-btn" style="background:#88C425" onclick="toggleFilter('Nature', this)">Nature</button>
+                            <button class="filter-btn" style="background:#3E8E41" onclick="toggleFilter('Forêt', this)">Forêt</button>
+                            
+                            <button class="filter-btn" style="background:var(--c-agri)" onclick="toggleFilter('Agri', this)">Agri</button>
+                            <button class="filter-btn" style="background:var(--c-artif)" onclick="toggleFilter('Artif', this)">Artif</button>
                         </div>
                     </div>
                     <div id="map-viz"></div>
@@ -504,173 +507,177 @@
         loadLayer('donne/CADASTRE_DALLE_2.geojson', mapLeft, styleCadastre, 'Cadastre');
         loadLayer('donne/CADASTRE_DALLE_2.geojson', mapRight, styleCadastre, 'Cadastre');
        // ---------------------------------------------------------
-        // --- 4. PAGE 3 : DASHBOARD ANALYTIQUE (FINAL) ---
+        // --- 4. PAGE 3 : DASHBOARD 5 CLASSES (FINAL) ---
         // ---------------------------------------------------------
 
         var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.212, 2.355], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapViz);
         
-        // --- CONFIGURATION ---
-        // C'est ici qu'on met le nom que tu as trouvé !
         var DALLE_ID_KEY = 'DALLE'; 
-        
         var globalGeoData = null;
         var vizLayer = null;
+        
+        // ETAT DES 5 FILTRES
+        var activeFilters = {
+            'Eau': true,
+            'Nature': true, // Pour la classe NATURE
+            'Forêt': true,  // Pour la classe BOIS
+            'Agri': true,   // Pour la classe AGRICULTURE
+            'Artif': true   // Pour la classe ARTIFICIALISE
+        };
 
-        // A. CHARGEMENT
+        // CHARGEMENT
         fetch('donne/GLOBAL_DALLES.geojson')
             .then(r => r.json())
             .then(data => {
                 globalGeoData = data;
-                
-                // 1. Remplir le menu avec les numéros de DALLE trouvés
                 populateDalleSelector(data);
-
-                // 2. Lancer l'affichage sur la première dalle de la liste
                 var select = document.getElementById('dalleSelector');
                 if(select.options.length > 0) {
-                    // On sélectionne le premier et on lance la mise à jour
                     select.selectedIndex = 0;
                     updatePage3(select.value);
                 }
-            })
-            .catch(e => console.error("Erreur chargement GLOBAL:", e));
-
-
-        // B. CRÉATION DU MENU DÉROULANT
-        function populateDalleSelector(data) {
-            var select = document.getElementById('dalleSelector');
-            select.innerHTML = ""; // On vide le "Chargement..."
-
-            var dalles = new Set();
-            data.features.forEach(f => {
-                // On récupère la valeur dans la colonne 'DALLE'
-                var val = f.properties[DALLE_ID_KEY];
-                if(val !== undefined && val !== null) {
-                    dalles.add(val);
-                }
             });
 
-            // On trie les numéros (1, 2, 3...) pour que ce soit propre
-            var sortedDalles = Array.from(dalles).sort((a,b) => a - b);
-
-            sortedDalles.forEach(d => {
+        function populateDalleSelector(data) {
+            var select = document.getElementById('dalleSelector');
+            select.innerHTML = "";
+            var dalles = new Set();
+            data.features.forEach(f => {
+                var val = f.properties[DALLE_ID_KEY];
+                if(val !== undefined && val !== null) dalles.add(val);
+            });
+            Array.from(dalles).sort((a,b)=>a-b).forEach(d => {
                 var opt = document.createElement('option');
-                opt.value = d;
-                opt.innerText = "Dalle " + d; // Affiche "Dalle 1", "Dalle 2"...
+                opt.value = d; opt.innerText = "Dalle " + d;
                 select.appendChild(opt);
             });
         }
 
+        // --- C. DÉTECTION DES 5 CLASSES (C'est ici que ça se joue) ---
+        function detectCategory(name) {
+            if(!name) return 'Autre';
+            var n = name.toUpperCase(); // On met en majuscule comme dans ton fichier
+            
+            // 1. EAU
+            if(n.includes('EAU')) return 'Eau';
+            
+            // 2. BOIS -> Catégorie 'Forêt'
+            if(n.includes('BOIS') || n.includes('FORET')) return 'Forêt';
+            
+            // 3. NATURE -> Catégorie 'Nature'
+            if(n.includes('NATURE')) return 'Nature';
+            
+            // 4. AGRICULTURE -> Catégorie 'Agri'
+            if(n.includes('AGRI') || n.includes('CULTURE')) return 'Agri';
+            
+            // 5. ARTIFICIALISE -> Catégorie 'Artif'
+            if(n.includes('ARTIF') || n.includes('BATI')) return 'Artif';
+            
+            return 'Artif'; // Par défaut
+        }
 
-        // C. MISE À JOUR (Quand tu changes le menu)
+        function getCategoryColor(cat) {
+            switch(cat) {
+                case 'Eau': return '#4A90E2';    // Bleu
+                case 'Nature': return '#88C425'; // Vert Clair (Herbe)
+                case 'Forêt': return '#3E8E41';  // Vert Foncé (Bois)
+                case 'Agri': return '#F2CA27';   // Jaune
+                case 'Artif': return '#D64541';  // Rouge
+                default: return '#cccccc';
+            }
+        }
+
+        // --- D. INTERACTION ---
+        function toggleFilter(category, btnElement) {
+            activeFilters[category] = !activeFilters[category];
+            if(activeFilters[category]) {
+                btnElement.classList.remove('inactive');
+                btnElement.style.opacity = "1";
+            } else {
+                btnElement.classList.add('inactive');
+                btnElement.style.opacity = "0.4";
+            }
+            if(vizLayer) vizLayer.setStyle(styleFeature);
+        }
+
+        // --- E. MISE À JOUR ---
         function updatePage3(dalleID) {
             if(!globalGeoData) return;
             document.getElementById('dashTitle').innerText = "Analyse Dalle " + dalleID;
 
-            // 1. FILTRE : On ne garde que les polygones de la dalle choisie
-            var filtered = globalGeoData.features.filter(f => 
-                String(f.properties[DALLE_ID_KEY]) === String(dalleID)
-            );
+            var filtered = globalGeoData.features.filter(f => String(f.properties[DALLE_ID_KEY]) === String(dalleID));
 
-            // 2. CARTE : On affiche les polygones colorés
             if(vizLayer) mapViz.removeLayer(vizLayer);
-            
             vizLayer = L.geoJSON({type:"FeatureCollection", features:filtered}, {
-                style: function(f) {
-                    var c = f.properties.CLASSE_FINALE || ""; // Colonne classe
-                    var col = '#D64541'; // Rouge (Bâti) par défaut
-
-                    // Détection des mots clés (Agri, Foret, Eau...)
-                    if(/Culture|Vigne|Agri/i.test(c)) col = '#F2CA27';
-                    if(/Foret|Bois|Pelouse|Nature/i.test(c)) col = '#88C425';
-                    if(/Eau/i.test(c)) col = '#4A90E2';
-                    
-                    return { fillColor: col, weight: 0.5, color: col, fillOpacity: 0.8 };
-                }
+                style: styleFeature
             }).addTo(mapViz);
             
-            // ZOOM AUTO : On se centre sur la dalle
-            if(filtered.length > 0) {
-                mapViz.fitBounds(vizLayer.getBounds());
-            }
+            if(filtered.length > 0) mapViz.fitBounds(vizLayer.getBounds());
 
-            // 3. GRAPHIQUES : On calcule et on affiche les stats
             var stats = calculateStats(filtered);
             renderChart('chart-confiance', stats, 'conf');
             renderChart('chart-sources', stats, 'src');
         }
 
-
-        // D. CALCULATEUR DE MOYENNES
-        function calculateStats(features) {
-            // Initialisation des compteurs
-            var grp = {
-                'Bâti':   { c:0, sumConf:0, sumSrc:0, color:'#D64541' },
-                'Agri':   { c:0, sumConf:0, sumSrc:0, color:'#F2CA27' },
-                'Nature': { c:0, sumConf:0, sumSrc:0, color:'#88C425' }
-            };
-
-            features.forEach(f => {
-                var p = f.properties;
-                var cat = 'Bâti';
-                var name = p.CLASSE_FINALE || "";
-                
-                // Catégorisation
-                if(/Culture|Vigne|Agri/i.test(name)) cat = 'Agri';
-                if(/Foret|Bois|Pelouse|Nature/i.test(name)) cat = 'Nature';
-
-                // Nettoyage des données (remplace virgule par point pour les décimales)
-                var conf = typeof p.INDICE_DE_CONFIANCE_FINAL === 'string' ? 
-                           parseFloat(p.INDICE_DE_CONFIANCE_FINAL.replace(',', '.')) : 
-                           p.INDICE_DE_CONFIANCE_FINAL;
-                           
-                var src = typeof p.NB_SOURCES_ACCORDS === 'string' ? 
-                          parseFloat(p.NB_SOURCES_ACCORDS.replace(',', '.')) : 
-                          p.NB_SOURCES_ACCORDS;
-
-                // On ajoute aux totaux
-                grp[cat].c++;
-                grp[cat].sumConf += (conf || 0);
-                grp[cat].sumSrc += (src || 0);
-            });
-
-            // On fait les moyennes finales
-            return Object.keys(grp).map(k => {
-                var g = grp[k];
-                return {
-                    label: k,
-                    color: g.color,
-                    conf: g.c ? (g.sumConf / g.c).toFixed(1) : 0,
-                    src: g.c ? (g.sumSrc / g.c).toFixed(1) : 0
-                };
-            });
+        function styleFeature(feature) {
+            var rawName = feature.properties.CLASSE_FINALE || "";
+            var cat = detectCategory(rawName);
+            
+            if(activeFilters[cat] === false) {
+                return { fillOpacity: 0, opacity: 0, stroke: false }; 
+            }
+            var col = getCategoryColor(cat);
+            return { fillColor: col, weight: 0.5, color: col, fillOpacity: 0.8 };
         }
 
+        // --- F. STATS ---
+        function calculateStats(features) {
+            var groups = {};
+            features.forEach(f => {
+                var p = f.properties;
+                var rawName = p.CLASSE_FINALE || "Inconnu";
+                var cat = detectCategory(rawName); // On récupère la catégorie (ex: Forêt)
+                var col = getCategoryColor(cat);
 
-        // E. AFFICHAGE DES BARRES HTML
+                if(!groups[cat]) { // On groupe par Catégorie (Forêt, Agri...), pas par nom brut
+                    groups[cat] = { count:0, sumConf:0, sumSrc:0, color: col };
+                }
+
+                var conf = typeof p.INDICE_DE_CONFIANCE_FINAL === 'string' ? parseFloat(p.INDICE_DE_CONFIANCE_FINAL.replace(',', '.')) : p.INDICE_DE_CONFIANCE_FINAL;
+                var src = typeof p.NB_SOURCES_ACCORDS === 'string' ? parseFloat(p.NB_SOURCES_ACCORDS.replace(',', '.')) : p.NB_SOURCES_ACCORDS;
+
+                groups[cat].count++;
+                groups[cat].sumConf += (conf || 0);
+                groups[cat].sumSrc += (src || 0);
+            });
+
+            return Object.keys(groups).map(k => {
+                var g = groups[k];
+                return {
+                    label: k, // Affiche "Forêt", "Nature", "Agri"...
+                    color: g.color,
+                    conf: g.count ? (g.sumConf / g.count).toFixed(1) : 0,
+                    src: g.count ? (g.sumSrc / g.count).toFixed(1) : 0
+                };
+            }).sort((a,b) => b.conf - a.conf);
+        }
+
         function renderChart(id, data, key) {
             var el = document.getElementById(id);
             el.innerHTML = "";
-            
-            // Échelle max : 100 pour la confiance, 5 pour les sources
             var max = (key === 'conf') ? 100 : 5; 
-
             data.forEach(d => {
-                var pct = (d[key] / max) * 100; // Largeur de la barre en %
-                
+                var pct = (d[key] / max) * 100;
                 el.innerHTML += `
                     <div class="chart-row">
-                        <div class="chart-lbl" style="width:50px;">${d.label}</div>
-                        <div class="chart-bg">
-                            <div class="chart-fill" style="width:${pct}%; background:${d.color}"></div>
-                        </div>
+                        <div class="chart-lbl" style="width:50px; font-size:0.8rem;">${d.label}</div>
+                        <div class="chart-bg"><div class="chart-fill" style="width:${pct}%; background:${d.color}"></div></div>
                         <div class="chart-val">${d[key]}</div>
                     </div>`;
             });
         }
         
-        // Animation au clic sur les cartes stats
         function activateDeck(el) {
             document.querySelectorAll('.deck-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
