@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Wiz - Explorateur Détaillé</title>
+    <title>Geo Wiz - Interface Pro</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -14,206 +14,260 @@
             --color-vivid: #E89C48;
             --color-dark: #1A3C34;
             --ease-premium: cubic-bezier(0.25, 1, 0.5, 1);
-            
-            /* Couleurs MOS */
-            --mos-foret: #A0D9B4; --mos-agri: #FBE7C6; --mos-nature: #E8F5E9;
-            --mos-eau: #AECBFA; --mos-artif: #81C784; --mos-habitat: #FFCCBC;
-            
-            /* Couleurs Fiche Sol */
-            --sol-texture: #B5C99A; --sol-famille: #F2CA27; --sol-epais: #E07A5F; --sol-drain: #3D5A80;
+            --c-artif: #D64541; --c-agri: #F2CA27; --c-nature: #88C425; --c-water: #4A90E2; --c-foret: #3E8E41;
         }
 
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'DM Sans', sans-serif; overflow: hidden; background: #e5e5e5; }
         .app-container { display: flex; height: 100vh; width: 100vw; }
+        /* --- SUPPRESSION DU CARRÉ BLEU DE SÉLECTION (FOCUS) --- */
+        *:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        /* Pour être sûr que la carte ne le fait pas non plus */
+        .leaflet-container {
+            outline: 0;
+        }
+        /* Pour éviter de sélectionner du texte par erreur en double-cliquant */
+        .map-area, .sidebar-label, .nav-icon {
+            user-select: none;
+        }
 
-        /* SIDEBAR GAUCHE */
-        .left-sidebar { width: 60px; background: var(--color-dark); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 500; }
-        .nav-icon { color: rgba(255,255,255,0.6); font-size: 1.2rem; margin-bottom: 25px; cursor: pointer; transition: 0.3s; display:flex; justify-content:center; width:100%; text-decoration:none;}
-        .nav-icon:hover { color: #fff; transform: scale(1.1); }
-        .nav-sep { width: 30px; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 25px; }
-
-        /* MAP AREA */
-        .map-area { flex: 1; position: relative; }
-        #map { width: 100%; height: 100%; }
-        .map-guide { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(26, 60, 52, 0.95); color: white; padding: 12px 25px; border-radius: 50px; font-weight: 500; pointer-events: none; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: opacity 0.5s; display: flex; align-items: center; gap: 10px; }
-
-        /* SIDEBAR DROITE */
-        .right-sidebar { width: 480px; background: white; border-left: 1px solid #ddd; display: flex; flex-direction: column; z-index: 500; box-shadow: -5px 0 20px rgba(0,0,0,0.05); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* --- SIDEBAR GAUCHE (NAVIGATION) --- */
+        .left-sidebar { 
+            width: 80px; background: var(--color-dark); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 2000; gap: 20px; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        }
         
-        .panel-view { height: 100%; display: flex; flex-direction: column; animation: fadeIn 0.4s var(--ease-premium); box-sizing: border-box; overflow-y: hidden; }
-        .panel-scroll-content { padding: 25px; overflow-y: auto; flex: 1; }
-        .hidden { display: none !important; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-group { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; }
+        .nav-sep { width: 40px; height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
 
-        /* HEADER & TABS */
-        .panel-header-wrapper { background: #fff; border-bottom: 1px solid #eee; padding-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); z-index: 10; }
+        .nav-icon { 
+            color: rgba(255,255,255,0.5); font-size: 1.1rem; cursor: pointer; transition: 0.3s; 
+            width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 8px;
+        }
+        .nav-icon:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .nav-icon.active { color: var(--color-vivid); background: rgba(232, 156, 72, 0.1); box-shadow: 0 0 0 1px var(--color-vivid); }
+
+        /* Selecteur Dalle */
+        .sidebar-select-container {
+            width: 70px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+            background: rgba(0,0,0,0.2); padding: 10px 0; border-radius: 8px;
+        }
+        .sidebar-label { color: #aaa; font-size: 0.55rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .sidebar-select {
+            width: 50px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); 
+            border-radius: 4px; padding: 4px; font-size: 0.8rem; text-align: center; cursor: pointer; outline:none;
+        }
+        .sidebar-select option { background: var(--color-dark); color: white; }
+
+        /* --- MAP AREA --- */
+        .map-area { flex: 1; position: relative; }
+        #map { width: 100%; height: 100%; background: #e5e5e5; }
+        
+        /* Guide Utilisateur (Overlay) */
+        .map-guide { 
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%); 
+            background: rgba(255, 255, 255, 0.95); color: var(--color-dark); padding: 10px 20px; 
+            border-radius: 30px; font-weight: 600; font-size: 0.85rem; pointer-events: none; z-index: 1000; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: opacity 0.5s; 
+            display: flex; align-items: center; gap: 10px; border: 1px solid #eee;
+        }
+
+        /* Switcher Méthode */
+        .method-switcher {
+            position: absolute; top: 20px; right: 20px; z-index: 1000;
+            background: white; padding: 4px; border-radius: 30px; 
+            display: flex; gap: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .m-btn {
+            border: none; padding: 8px 16px; border-radius: 25px; background: transparent;
+            font-family: 'DM Sans'; font-weight: 700; font-size: 0.8rem; color: #888; cursor: pointer; transition: 0.3s;
+        }
+        .m-btn.active { background: var(--color-dark); color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        /* Fenêtre Info Modale */
+        .info-modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; background: white; padding: 30px; border-radius: 12px; z-index: 3000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: none;
+        }
+        .info-modal.active { display: block; animation: popIn 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2999; display: none;
+        }
+        .modal-overlay.active { display: block; }
+        @keyframes popIn { from{opacity:0; transform:translate(-50%, -45%);} to{opacity:1; transform:translate(-50%, -50%);} }
+
+        /* --- SIDEBAR DROITE --- */
+        .right-sidebar { width: 450px; background: white; border-left: 1px solid #ddd; display: flex; flex-direction: column; z-index: 500; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
+        .panel-view { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        .panel-header-wrapper { background: #fff; border-bottom: 1px solid #eee; padding-top: 20px; }
         .panel-top-row { display: flex; justify-content: space-between; align-items: center; padding: 0 25px 15px 25px; }
         .panel-title { font-family: 'Playfair Display'; font-size: 1.4rem; color: var(--color-dark); margin: 0; font-weight: 700; }
         .close-btn { cursor: pointer; color: #999; transition: 0.2s; font-size: 1.2rem; }
         .close-btn:hover { color: #D64541; }
-
         .tabs-nav { display: flex; padding: 0 25px; gap: 20px; }
-        .tab-link { 
-            padding: 10px 0; font-size: 0.85rem; font-weight: 600; color: #999; 
-            background: none; border: none; border-bottom: 3px solid transparent; 
-            cursor: pointer; transition: all 0.3s; 
-        }
+        .tab-link { padding: 10px 0; font-size: 0.85rem; font-weight: 600; color: #999; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.3s; }
         .tab-link:hover { color: var(--color-vivid); }
         .tab-link.active { color: var(--color-dark); border-bottom-color: var(--color-dark); }
+        .panel-scroll-content { padding: 25px; overflow-y: auto; flex: 1; }
+        .hidden { display: none !important; }
 
-        /* TAB 1 CONTENT */
-        .chart-wrapper { position: relative; width: 200px; height: 200px; margin: 0 auto 20px auto; }
-        svg.donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-        path.donut-segment { transition: all 0.3s var(--ease-premium); cursor: pointer; stroke-linejoin: round; }
+        /* ELEMENTS GRAPHIQUES */
+        .parcel-focus-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border-left: 5px solid #333; }
+        .pf-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 700; font-size: 0.85rem; color: #333; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+        .pf-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: #555; margin-bottom: 6px; }
+        .pf-val { font-weight: 700; color: #222; }
+
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .kpi-card { background: #f8f9fa; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid #eee; }
+        .kpi-val { font-size: 1.1rem; font-weight: 700; color: var(--color-dark); }
+        .kpi-lbl { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top: 4px; }
+
+        .chart-wrapper { position: relative; width: 150px; height: 150px; margin: 0 auto 20px auto; }
+        svg.donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        path.donut-segment { transition: all 0.3s; cursor: pointer; stroke-linejoin: round; }
         path.donut-segment:hover { stroke-width: 8 !important; opacity: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.2)); }
-        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: 150px;}
-        .val-big { font-size: 1.6rem; font-weight: 700; color: #333; line-height: 1; display: block; }
-        
-        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 30px; }
-        .leg-item { display: flex; align-items: center; font-size: 0.75rem; color: #666; }
-        .leg-color { width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; flex-shrink: 0; }
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+        .val-big { font-size: 1.1rem; font-weight: 700; color: #333; display: block; }
 
-        .evolution-section { border-top: 1px solid #eee; padding-top: 25px; margin-top: 10px; }
-        .evo-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.8rem; height: 20px; }
-        .evo-label { width: 90px; text-align: right; padding-right: 10px; color: #666; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .evo-track-container { flex: 1; display: flex; align-items: center; position: relative; height: 100%; border-left: 1px solid #ccc; }
-        .evo-bar { height: 12px; border-radius: 2px; transition: width 1s var(--ease-premium); position: absolute; top: 50%; transform: translateY(-50%); }
-        .evo-bar.neg { right: 100%; transform-origin: right; border-radius: 2px 0 0 2px; }
-        .evo-bar.pos { left: 0; transform-origin: left; border-radius: 0 2px 2px 0; }
-        .evo-value { width: 40px; padding-left: 8px; font-weight: 700; font-size: 0.75rem; color: #333; }
+        .stat-rows { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .stat-item { display: flex; flex-direction: column; gap: 5px; }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700; color: #444; }
+        .stat-dot { width: 10px; height: 10px; border-radius: 50%; display:inline-block; margin-right:8px; }
+        .stat-track { width: 100%; height: 6px; background: #eee; border-radius: 4px; overflow: hidden; }
+        .stat-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+        .stat-meta { display: flex; justify-content: space-between; font-size: 0.7rem; color: #888; margin-top: 4px; }
+        .meta-badges { display: flex; gap: 6px; }
+        .meta-tag { background: #fff; border: 1px solid #eee; padding: 1px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 0.65rem; }
+        .tag-good { color: #3E8E41; background: #e8f5e9; } .tag-mid { color: #F2CA27; background: #fffde7; } .tag-bad { color: #D64541; background: #ffebee; }
 
-        /* TAB 2 CONTENT (PHOTO) */
-        .detail-text { font-size: 0.9rem; line-height: 1.6; color: #555; margin-bottom: 25px; }
-        .detail-subtitle { font-family: 'Playfair Display'; font-weight: 700; font-size: 1rem; color: var(--color-dark); margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        
-        .mini-map-container {
-            width: 100%; height: 280px; 
-            border-radius: 8px; overflow: hidden; 
-            position: relative; margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid white;
-        }
+        .evolution-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .detail-subtitle { font-family: 'Playfair Display'; font-weight: 700; font-size: 1rem; color: var(--color-dark); margin-bottom: 10px; display: block; }
+        .evo-row { display: flex; align-items: center; height: 20px; font-size: 0.75rem; margin-top:8px;}
+        .evo-lbl { width: 60px; text-align: right; padding-right: 10px; color: #666; }
+        .evo-track { flex: 1; height: 100%; display: flex; align-items: center; position: relative; border-left: 1px solid #ccc; }
+        .evo-bar { height: 8px; position: absolute; top: 50%; transform: translateY(-50%); border-radius: 2px; }
+        .evo-pos { left: 0; background: #3E8E41; } .evo-neg { right: 100%; background: #D64541; transform-origin: right; }
+        .evo-value { width: 60px; text-align: left; padding-left: 10px; font-weight: 700; color: #333; }
+
+        .pure-legend-item { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #444; font-weight: 500; margin-bottom:10px; }
+        .pure-color { width: 18px; height: 18px; border-radius: 4px; }
+
+        .mini-map-container { width: 100%; height: 200px; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 10px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         #mini-map { width: 100%; height: 100%; }
-        /* Réticule de visée */
-        .mini-map-crosshair {
-            position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
-            transform: translate(-50%, -50%); border: 2px dashed rgba(255,255,255,0.7);
-            border-radius: 50%; pointer-events: none; z-index: 1000;
-        }
-        .mini-map-caption { font-size: 0.75rem; color: #888; font-style: italic; margin-top: 5px; text-align: right; }
-
-        /* STYLES BARRES (ACCUEIL) */
-        .info-block { display: flex; gap: 15px; margin-bottom: 25px; }
-        .info-icon { width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
-        .info-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .info-lbl { font-size: 0.7rem; color: #999; margin-bottom: 4px; font-weight: 500; }
-        .info-val { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
-        .p-track { width: 100%; height: 4px; background: #eee; border-radius: 2px; }
-        .p-fill { height: 100%; border-radius: 2px; }
-        .th-tex .info-icon { background: var(--sol-texture); } .th-tex .info-val { color: var(--sol-texture); } .th-tex .p-fill { background: var(--sol-texture); }
-        .th-fam .info-icon { background: var(--sol-famille); } .th-fam .info-val { color: var(--sol-famille); } .th-fam .p-fill { background: var(--sol-famille); }
-        .th-epa .info-icon { background: var(--sol-epais); } .th-epa .info-val { color: var(--sol-epais); } .th-epa .p-fill { background: var(--sol-epais); }
-        .th-dra .info-icon { background: var(--sol-drain); } .th-dra .info-val { color: var(--sol-drain); } .th-dra .p-fill { background: var(--sol-drain); }
+        .mini-map-crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); border: 2px dashed rgba(255,255,255,0.8); border-radius: 50%; z-index: 1000; }
+        .map-status { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(26,60,52,0.9); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; z-index: 900; backdrop-filter: blur(4px); }
 
     </style>
 </head>
 <body>
 
+    <div class="modal-overlay" onclick="toggleInfo()"></div>
+    <div class="info-modal" id="infoModal">
+        <h2 style="font-family:'Playfair Display'; margin-top:0; color:var(--color-dark);">À propos</h2>
+        <p style="color:#666; line-height:1.6;">
+            Cet outil permet de comparer les résultats de classification d'occupation des sols.<br><br>
+            <strong>Méthode 1 :</strong> Classification standard (RPG + OSO).<br>
+            <strong>Méthode 2 :</strong> Classification avancée avec correction IA.<br><br>
+            Cliquez sur une parcelle pour voir les détails de probabilité et de source.
+        </p>
+        <button class="m-btn active" style="width:100%; margin-top:20px;" onclick="toggleInfo()">Compris</button>
+    </div>
+
     <div class="app-container">
         
         <aside class="left-sidebar">
             <a href="visualisation.html" class="nav-icon"><i class="fas fa-arrow-left"></i></a>
-            <div class="nav-sep"></div>
-            <div class="nav-icon active"><i class="fas fa-layer-group"></i></div>
-            <div class="nav-icon"><i class="fas fa-filter"></i></div>
-            <div class="nav-sep"></div>
-            <div class="nav-icon"><i class="fas fa-cog"></i></div>
+            
+            <div class="nav-group">
+                <div class="nav-icon active" id="btn-map-light" title="Plan" onclick="setBasemap('light')"><i class="fas fa-map"></i></div>
+                <div class="nav-icon" id="btn-map-sat" title="Satellite" onclick="setBasemap('sat')"><i class="fas fa-satellite"></i></div>
+            </div>
+
+            <div class="sidebar-select-container">
+                <span class="sidebar-label">Dalle</span>
+                <select id="leftDalleSelector" class="sidebar-select" onchange="onSidebarDalleSelect(this.value)">
+                    <option value="" disabled selected>--</option>
+                </select>
+            </div>
+
+            <div class="nav-icon" style="margin-top:auto;" onclick="toggleInfo()"><i class="fas fa-info-circle"></i></div>
         </aside>
 
         <main class="map-area">
             <div id="map"></div>
+            
             <div id="uxGuide" class="map-guide">
-                <i class="fas fa-mouse-pointer"></i> Cliquez sur une zone pour le détail
+                <i class="fas fa-mouse-pointer"></i> Cliquez sur une zone
             </div>
-            <div style="position:absolute; top:20px; left:20px; z-index:400; background:white; padding:10px 15px; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; align-items:center; gap:10px;">
-                <i class="fas fa-search" style="color:#999;"></i>
-                <input type="text" placeholder="Rechercher une parcelle..." style="border:none; outline:none; font-family:'DM Sans'; width:200px;">
+
+            <div id="mapStatus" class="map-status"></div>
+            
+            <div class="method-switcher">
+                <button class="m-btn active" id="btn-m1" onclick="switchMethod('m1')">Méthode 1</button>
+                <button class="m-btn" id="btn-m2" onclick="switchMethod('m2')">Méthode 2</button>
             </div>
         </main>
 
         <aside class="right-sidebar">
             
             <div id="view-bars" class="panel-view">
-                <div class="panel-header-wrapper" style="margin-bottom:20px; padding-bottom:0;">
+                <div class="panel-header-wrapper">
                     <div class="panel-top-row">
-                        <div class="panel-title">Fiche Pédologique</div>
+                        <div class="panel-title">Vue Globale</div>
                     </div>
                 </div>
                 <div class="panel-scroll-content">
-                    <div class="info-block th-tex"><div class="info-icon"><i class="fas fa-border-all"></i></div><div class="info-content"><span class="info-lbl">Texture</span><span class="info-val">Limon (40%)</span><div class="p-track"><div class="p-fill" style="width:40%"></div></div></div></div>
-                    <div class="info-block th-fam"><div class="info-icon"><i class="fas fa-circle-nodes"></i></div><div class="info-content"><span class="info-lbl">Famille</span><span class="info-val">Talweg (55%)</span><div class="p-track"><div class="p-fill" style="width:55%"></div></div></div></div>
-                    <div class="info-block th-epa"><div class="info-icon"><i class="fas fa-align-justify"></i></div><div class="info-content"><span class="info-lbl">Épaisseur</span><span class="info-val">80-100cm (35%)</span><div class="p-track"><div class="p-fill" style="width:35%"></div></div></div></div>
-                    <div class="info-block th-dra"><div class="info-icon"><i class="fas fa-tint"></i></div><div class="info-content"><span class="info-lbl">Drainage</span><span class="info-val">Favorable (50%)</span><div class="p-track"><div class="p-fill" style="width:50%"></div></div></div></div>
-                    <div style="margin-top:20px; background:#f0f2f5; padding:20px; border-radius:8px; font-size:0.85rem; color:#666;">
-                        <strong>Exploration :</strong> Cliquez sur une commune pour afficher le bilan d'occupation et la vue détaillée.
-                    </div>
+                    <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">
+                        Cartographie des Dalles. Sélectionnez une parcelle pour l'analyser.
+                    </p>
+                    <div class="pure-legend" id="globalLegend"></div>
                 </div>
             </div>
 
             <div id="view-chart" class="panel-view hidden" style="padding:0;">
-                
                 <div class="panel-header-wrapper">
                     <div class="panel-top-row">
-                        <div class="panel-title" id="zoneTitle">--</div>
+                        <div>
+                            <span style="font-size:0.7rem; color:#999; text-transform:uppercase;">Analyse</span>
+                            <div class="panel-title" id="zoneTitle">Dalle #--</div>
+                        </div>
                         <i class="fas fa-times close-btn" onclick="resetView()"></i>
                     </div>
                     <div class="tabs-nav">
-                        <button class="tab-link active" onclick="switchTab('bilan')">Bilan territorial</button>
-                        <button class="tab-link" onclick="switchTab('detail')">Représentation détaillée</button>
+                        <button class="tab-link active" onclick="switchTab('bilan')">Bilan & Qualité</button>
+                        <button class="tab-link" onclick="switchTab('detail')">Visuel</button>
                     </div>
                 </div>
 
                 <div class="panel-scroll-content">
-                    
                     <div id="tab-bilan">
+                        <div id="parcelFocusContainer"></div>
+                        
+                        <div class="kpi-grid" id="kpiContainer"></div>
+                        
                         <div class="chart-wrapper">
                             <svg id="interactiveDonut" class="donut-svg" viewBox="0 0 40 40"></svg>
-                            <div class="center-text">
-                                <span class="val-big" id="centerValue">--</span>
-                                <span style="font-size:0.7rem; color:#888; text-transform:uppercase;">Surface</span>
-                            </div>
+                            <div class="center-text"><span class="val-big" id="centerValue">--</span><span style="font-size:0.7rem; color:#888;">Surface totale</span></div>
                         </div>
-                        <div class="legend-grid" id="legendContainer"></div>
+
+                        <div class="stat-rows" id="statsList"></div>
+                        
                         <div class="evolution-section">
-                            <span class="detail-subtitle" style="border:none;">Évolution Annuelle (2017-2022)</span>
+                            <span class="detail-subtitle" style="border:none;">Comparatif (M1 vs M2)</span>
                             <div id="evolutionContainer"></div>
                         </div>
                     </div>
 
                     <div id="tab-detail" class="hidden">
-                        <p class="detail-text">
-                            La nomenclature du Mos offre une grande précision thématique. 
-                            Vous visualisez ci-dessous la photographie aérienne en temps réel de la zone sélectionnée.
-                        </p>
-                        
-                        <span class="detail-subtitle">Photographie Aérienne (Synchro)</span>
-                        <p class="detail-text" style="font-size:0.8rem; margin-top:5px; margin-bottom:10px;">
-                            Déplacez la carte principale ou cliquez sur une zone pour mettre à jour cette vue.
-                        </p>
-                        
+                        <span class="detail-subtitle">Vérification Satellite</span>
                         <div class="mini-map-container">
                             <div id="mini-map"></div>
                             <div class="mini-map-crosshair"></div>
                         </div>
-                        <div class="mini-map-caption">Source: Esri World Imagery (Vue Satellite)</div>
-
-                        <span class="detail-subtitle" style="margin-top:20px;">Détails Cadastraux</span>
-                        <div style="font-size:0.85rem; color:#666; display:flex; flex-direction:column; gap:8px;">
-                            <div><strong>Type :</strong> Espaces verts urbains</div>
-                            <div><strong>Surface :</strong> <span id="detailSurface">--</span></div>
-                            <div><strong>Code :</strong> 1.4.1 (Nomenclature MOS)</div>
-                        </div>
                     </div>
-
                 </div>
             </div>
 
@@ -222,171 +276,382 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- 1. MAIN MAP ---
-        var map = L.map('map', {zoomControl:false}).setView([43.1026, 2.4140], 9);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        L.control.zoom({position:'bottomright'}).addTo(map);
+        var geoDataM1 = null, geoDataM2 = null, currentLayer = null; 
+        var currentMethod = 'm1', selectedDalleId = null;
 
-        // --- 2. MINI MAP JUMELÉE ---
-        var miniMap = L.map('mini-map', {
-            zoomControl: false, 
-            attributionControl: false,
-            dragging: false, // On désactive pour forcer la synchro
-            scrollWheelZoom: false, 
-            doubleClickZoom: false, 
-            boxZoom: false
-        }).setView([43.1026, 2.4140], 9);
+        const statsCache = {};
+
+        // --- CONFIGURATION ---
+        const colors = { 'Eau': '#4A90E2', 'Nature': '#88C425', 'Forêt': '#3E8E41', 'Agri': '#F2CA27', 'Artif': '#D64541' };
+        const orderedCats = ['Artif', 'Agri', 'Forêt', 'Nature', 'Eau'];
         
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(miniMap);
-        var miniGeoJsonLayer = L.layerGroup().addTo(miniMap);
+        // --- 1. MAPS ---
+        var map = L.map('map', { zoomControl: false, boxZoom: false, doubleClickZoom: false, keyboard: false }).setView([43.1026, 2.4140], 12);
+        L.control.zoom({position:'bottomright'}).addTo(map);
+        L.control.scale({position:'bottomright', imperial:false}).addTo(map); // Echelle
 
-        // --- 3. MOTEUR DE SYNCHRONISATION ---
-        // C'est ici que la magie opère
-        map.on('move', function() {
-            var center = map.getCenter();
-            var zoom = map.getZoom();
-            // La mini map suit exactement la grande
-            miniMap.setView(center, zoom, {animate: false});
+        // Fonds de carte
+        var layers = {
+            'light': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'),
+            'sat': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}')
+        };
+        layers.light.addTo(map); // Défaut
+
+        var miniMap = L.map('mini-map', {zoomControl:false, attributionControl:false, dragging:false, scrollWheelZoom:false, doubleClickZoom:false, boxZoom:false}).setView([43.1026, 2.4140], 12);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(miniMap);
+        var miniGeoJsonLayer = L.layerGroup().addTo(miniMap); 
+
+        map.on('move', function() { miniMap.setView(map.getCenter(), map.getZoom(), {animate: false}); });
+
+        // --- 2. DONNEES ---
+        var geoDataM1 = null, geoDataM2 = null, currentLayer = null; 
+        var currentMethod = 'm1', selectedDalleId = null;
+
+        // --- 3. CHARGEMENT & DEPARTEMENT ---
+        Promise.all([
+            fetch('donne/GLOBAL_DALLES.geojson').then(r => r.json()),
+            fetch('donne/METHODE_2.geojson').then(r => r.json()),
+            fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson').then(r=>r.json())
+        ]).then(([d1, d2, dep]) => {
+            geoDataM1 = d1; geoDataM2 = d2;
+            
+            // 1. Ajout Contour Département
+            L.geoJSON(dep, {style: {color:'#E89C48', weight:2, fill:false, dashArray:'5,5'}, interactive:false}).addTo(map);
+            
+            // 2. Remplissage menu
+            populateLeftSidebar(geoDataM1);
+            drawGlobalLegend(); 
+            
+            // 3. Affichage et Zoom Auto sur les données
+            displayLayer(geoDataM1);
+            if(geoDataM1.features.length > 0) {
+                var tempLayer = L.geoJSON(geoDataM1);
+                map.fitBounds(tempLayer.getBounds(), {padding:[20,20], animate: false});
+            }
         });
 
-        // --- 4. DATA ---
-        const categories = [
-            { label: 'Forêts', color: '#A0D9B4' }, { label: 'Agricole', color: '#FBE7C6' },
-            { label: 'Nature', color: '#E8F5E9' }, { label: 'Eau', color: '#AECBFA' },
-            { label: 'Artif.', color: '#81C784' }, { label: 'Hab. Ind.', color: '#FFCCBC' },
-            { label: 'Hab. Col.', color: '#EF5350' }, { label: 'Activités', color: '#E1BEE7' }
-        ];
+        // --- FONCTIONS UI ---
+        function setBasemap(type) {
+            map.eachLayer(l => { if(l instanceof L.TileLayer) map.removeLayer(l); });
+            layers[type].addTo(map);
+            document.getElementById('btn-map-light').classList.toggle('active', type==='light');
+            document.getElementById('btn-map-sat').classList.toggle('active', type==='sat');
+        }
 
-        var audeLayer;
-        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
-            .then(r=>r.json()).then(data => {
-                audeLayer = L.geoJSON(data, {
-                    style: { color: '#E89C48', weight: 2, fillOpacity: 0.1 },
-                    onEachFeature: function(feature, layer) {
-                        layer.on('click', function(e) {
-                            L.DomEvent.stopPropagation(e); // Stop bubbling
-                            audeLayer.setStyle({fillOpacity: 0.1, color:'#E89C48'});
-                            e.target.setStyle({fillOpacity: 0.3, color:'#D64541'});
-                            map.fitBounds(e.target.getBounds());
-                            document.getElementById('uxGuide').style.opacity = '0';
-                            
-                            // Load Panel & Sync
-                            showChart(feature.properties.nom || "Zone Sélectionnée", feature);
-                        });
-                    }
-                }).addTo(map);
+        function toggleInfo() {
+            var m = document.getElementById('infoModal');
+            var o = document.querySelector('.modal-overlay');
+            if(m.style.display === 'block') { m.style.display='none'; m.classList.remove('active'); o.classList.remove('active'); }
+            else { m.style.display='block'; setTimeout(()=>m.classList.add('active'),10); o.classList.add('active'); }
+        }
+
+        function populateLeftSidebar(data) {
+            var select = document.getElementById('leftDalleSelector');
+            var dalles = new Set();
+            data.features.forEach(f => { if(f.properties['DALLE']) dalles.add(f.properties['DALLE']); });
+            Array.from(dalles).sort((a,b)=>a-b).forEach(d => {
+                var opt = document.createElement('option'); opt.value = d; opt.innerText = "#" + d; select.appendChild(opt);
             });
-
-        function resetView() {
-            document.getElementById('view-chart').classList.add('hidden');
-            document.getElementById('view-bars').classList.remove('hidden');
-            if(audeLayer) audeLayer.setStyle({color: '#E89C48', fillOpacity: 0.1});
-            map.setView([43.1026, 2.4140], 9);
-            document.getElementById('uxGuide').style.opacity = '1';
         }
-
-        function showChart(name, feature) {
-            document.getElementById('view-bars').classList.add('hidden');
-            document.getElementById('view-chart').classList.remove('hidden');
-            document.getElementById('zoneTitle').innerText = name;
-            
-            // Fake Data Generation
-            const vals = Array.from({length: 8}, () => Math.floor(Math.random() * 20) + 2);
-            const total = vals.reduce((a,b)=>a+b,0);
-            const percents = vals.map(v => Math.round((v/total)*100));
-            drawDonut(percents, total + " ha");
-            document.getElementById('detailSurface').innerText = total + " ha";
-
-            const evoData = categories.map(cat => ({
-                label: cat.label, color: cat.color, value: Math.floor(Math.random() * 200) - 100 
-            }));
-            drawEvolution(evoData);
-
-            // Sync Mini Map Focus
-            updateMiniMapFeature(feature);
-        }
-
-        function updateMiniMapFeature(feature) {
-            miniGeoJsonLayer.clearLayers();
-            // Dessine le contour blanc sur la vue satellite
-            var layer = L.geoJSON(feature, {
-                style: { color: 'white', weight: 3, fillOpacity: 0, opacity: 1 }
-            });
-            miniGeoJsonLayer.addLayer(layer);
-            // La vue est gérée par le sync 'move', mais on peut forcer un recentrage initial
-            // miniMap.fitBounds(layer.getBounds()); 
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (tabName === 'bilan') {
-                document.getElementById('tab-bilan').classList.remove('hidden');
-                document.getElementById('tab-detail').classList.add('hidden');
-            } else {
-                document.getElementById('tab-bilan').classList.add('hidden');
-                document.getElementById('tab-detail').classList.remove('hidden');
-                // Force le rafraîchissement Leaflet quand l'onglet devient visible
-                setTimeout(() => { miniMap.invalidateSize(); }, 100);
+        
+        function onSidebarDalleSelect(val) {
+            if(!val) return;
+            var targetData = currentMethod === 'm1' ? geoDataM1 : geoDataM2;
+            var feat = targetData.features.find(f => String(f.properties['DALLE']) === String(val));
+            if(feat) {
+                var layer = L.geoJSON(feat);
+                map.fitBounds(layer.getBounds(), {padding:[50,50], maxZoom:15, animate: false});
+                showStatsForDalle(val, null);
             }
         }
 
-        // --- GRAPHS ---
-        function drawDonut(values, totalStr) {
+        // --- LOGIQUE MAP ---
+        function displayLayer(geoJsonData) {
+            if(currentLayer) map.removeLayer(currentLayer);
+            currentLayer = L.geoJSON(geoJsonData, {
+                style: function(f) {
+                    var colName = currentMethod === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
+                    var cat = detectCategory(f.properties[colName]);
+                    return { color: colors[cat] || '#ccc', weight: 1, fillOpacity: 0.5 };
+                },
+                //var confCol = currentMethod === 'm1'
+                //? 'INDICE_CONFIANCE_FINAL'
+                //: 'SCORE_CONFIANCE';
+
+                //var conf = parseFloat(String(f.properties[confCol]).replace(',','.')) || 50;
+
+                //return {
+                    //color: colors[cat] || '#ccc',
+                    //weight: 1,
+                    //fillOpacity: Math.max(0.3, Math.min(0.9, conf / 100))
+                    //};
+
+                onEachFeature: function(f, l) {
+                var area = Math.round(getApproxArea(f.geometry));
+                var colName = currentMethod === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
+                var cat = detectCategory(f.properties[colName]);
+
+                l.bindTooltip(
+                    `${cat} · ${area} m²`,
+                    { sticky: true, opacity: 0.9 }
+                );
+    
+                    l.on({
+                        mouseover: function(e) {
+                            e.target.setStyle({
+                                weight: 2,
+                                fillOpacity: 0.7
+                            });
+                        },
+                        mouseout: function(e) {
+                            currentLayer.resetStyle(e.target);
+                        },
+                        click: function(e) {
+                            L.DomEvent.stopPropagation(e);
+                            currentLayer.resetStyle();
+                            e.target.setStyle({
+                                weight: 3,
+                                color: '#333',
+                                fillOpacity: 0.85
+                            });
+                            map.fitBounds(e.target.getBounds(), {padding:[50,50], maxZoom:15, animate: false});
+                            document.getElementById('uxGuide').style.opacity = '0';
+                            showStatsForDalle(f.properties['DALLE'], f);
+                            updateMiniMapFeature(f);
+                        }
+                        
+                    });
+                }
+            }).addTo(map);
+        }
+
+        function updateMiniMapFeature(f) {
+            miniGeoJsonLayer.clearLayers();
+            L.geoJSON(f, { style: { color: 'white', weight: 3, fillOpacity: 0 } }).addTo(miniGeoJsonLayer);
+        }
+
+        function switchMethod(m) {
+            currentMethod = m;
+            document.getElementById('btn-m1').className = m==='m1'?'m-btn active':'m-btn';
+            document.getElementById('btn-m2').className = m==='m2'?'m-btn active':'m-btn';
+            displayLayer(m === 'm1' ? geoDataM1 : geoDataM2);
+            if(selectedDalleId) showStatsForDalle(selectedDalleId, null);
+        }
+
+        // --- VUES & STATS ---
+        function drawGlobalLegend() {
+            var container = document.getElementById('globalLegend');
+            container.innerHTML = "";
+            orderedCats.forEach(cat => {
+                container.innerHTML += `<div class="pure-legend-item"><div class="pure-color" style="background:${colors[cat]}"></div><span>${cat}</span></div>`;
+            });
+        }
+
+        function showStatsForDalle(dalleId, featureClicked) {
+            selectedDalleId = dalleId;
+            document.getElementById('view-bars').classList.add('hidden');
+            document.getElementById('view-chart').classList.remove('hidden');
+            document.getElementById('zoneTitle').innerText = "Dalle #" + dalleId;
+
+            // 1. FOCUS PARCELLE
+            var focusDiv = document.getElementById('parcelFocusContainer');
+            if(featureClicked) {
+                var p = featureClicked.properties;
+                var colClass = currentMethod === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
+                var colConf = currentMethod === 'm1' ? 'INDICE_CONFIANCE_FINAL' : 'SCORE_CONFIANCE';
+                var cat = detectCategory(p[colClass]);
+                var areaVal = getApproxArea(featureClicked.geometry).toFixed(0);
+                var rawScore = p[colConf]; if(typeof rawScore==='string') rawScore=parseFloat(rawScore.replace(',','.'));
+                var scoreDisplay = rawScore ? rawScore.toFixed(1) : "--";
+                var sourceHtml = (currentMethod === 'm1') ? `<div class="pf-row"><span>Sources</span><span class="pf-val">${p['NB_SOURCES_ACCORD']||'?'}</span></div>` : "";
+
+                focusDiv.innerHTML = `
+                    <div class="parcel-focus-card" style="border-left-color:${colors[cat]}">
+                        <div class="pf-header"><span style="color:${colors[cat]}">PARCELLE SÉLECTIONNÉE</span><span style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.7rem; color:#333;">ID: ${p.NUMERO || p.id || '?'}</span></div>
+                        <div class="pf-row"><span>Classe</span><span class="pf-val" style="color:${colors[cat]}">${cat}</span></div>
+                        <div class="pf-row"><span>Surface</span><span class="pf-val">${areaVal} m²</span></div>
+                        <div class="pf-row"><span>Confiance IA</span><span class="pf-val">${scoreDisplay} / 100</span></div>
+                        ${sourceHtml}
+                    </div>`;
+            } else { focusDiv.innerHTML = ""; }
+
+            // 2. STATS DALLE
+            var activeData = currentMethod === 'm1' ? geoDataM1 : geoDataM2;
+            var cacheKey = currentMethod + '_' + dalleId;
+            if (!statsCache[cacheKey]) {
+                statsCache[cacheKey] = calculateStats(activeData, dalleId, currentMethod);
+            }
+            var stats = statsCache[cacheKey];
+
+
+            document.getElementById('kpiContainer').innerHTML = `
+                <div class="kpi-card"><span class="kpi-val">${stats.avgConf}</span><span class="kpi-lbl">Confiance Moy.</span></div>
+                <div class="kpi-card"><span class="kpi-val">${stats.totalCount}</span><span class="kpi-lbl">Nb Parcelles</span></div>`;
+
+            drawDonut(stats.areas);
+            drawDetailedLegend(stats);
+
+            statsCache['m1_'+dalleId] ??= calculateStats(geoDataM1, dalleId, 'm1');
+            statsCache['m2_'+dalleId] ??= calculateStats(geoDataM2, dalleId, 'm2');
+
+            var statsM1 = statsCache['m1_'+dalleId];
+            var statsM2 = statsCache['m2_'+dalleId];
+
+
+            drawComparator(statsM1.areas, statsM2.areas);
+            document.getElementById('mapStatus').innerHTML =
+                `Méthode <strong>${currentMethod.toUpperCase()}</strong> · Dalle <strong>#${dalleId}</strong>`;
+
+        }
+
+        // LEGENDE DETAILLEE AVEC BADGES
+        function drawDetailedLegend(stats) {
+            var container = document.getElementById('statsList');
+            container.innerHTML = "";
+            var sortedCats = Object.keys(stats.areas).sort((a,b) => stats.areas[b] - stats.areas[a]); 
+            sortedCats.forEach(cat => {
+                if(stats.counts[cat] === 0) return;
+                var pct = (stats.counts[cat] / stats.totalCount) * 100; 
+                var confCat = (stats.sumsConf[cat] / stats.counts[cat]).toFixed(1);
+                var tagClass = confCat < 50 ? 'tag-bad' : (confCat > 80 ? 'tag-good' : 'tag-mid');
+                var sourceBadge = "";
+                if(currentMethod === 'm1' && stats.sumsSource[cat]) {
+                    var avgSrc = (stats.sumsSource[cat] / stats.counts[cat]).toFixed(1);
+                    sourceBadge = `<div class="meta-tag"><span>${avgSrc} src</span></div>`;
+                }
+                container.innerHTML += `
+                    <div class="stat-item">
+                        <div class="stat-header">
+                            <div class="stat-header-left"><div class="stat-dot" style="background:${colors[cat]}"></div><span>${cat}</span></div>
+                            <span>${pct.toFixed(1)}%</span>
+                        </div>
+                        <div class="stat-track"><div class="stat-fill" style="width:${pct}%; background:${colors[cat]}"></div></div>
+                        <div class="stat-meta">
+                            <span>${stats.counts[cat]} parcelles</span>
+                            <div class="meta-badges">${sourceBadge}<div class="meta-tag ${tagClass}"><span>${confCat}</span></div></div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // CALCULS & COMPARATEUR
+        function calculateStats(data, dalleIdFilter, method) {
+            var colClass = method === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
+            var colConf = method === 'm1' ? 'INDICE_CONFIANCE_FINAL' : 'SCORE_CONFIANCE';
+            var colSource = 'NB_SOURCES_ACCORD';
+            var features = dalleIdFilter ? data.features.filter(f => String(f.properties['DALLE']) === String(dalleIdFilter)) : data.features;
+            var counts = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
+            var areas = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
+            var sumsConf = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
+            var sumsSource = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
+            var totalConf = 0;
+
+            features.forEach(f => {
+                var p = f.properties; var cat = detectCategory(p[colClass]); var area = getApproxArea(f.geometry);
+                counts[cat]++; areas[cat] += area;
+                var c = parseFloat(String(p[colConf]).replace(',','.')) || 0; sumsConf[cat] += c; totalConf += c;
+                if(method === 'm1') { var s = parseFloat(String(p[colSource]).replace(',','.')) || 0; sumsSource[cat] += s; }
+            });
+            return { counts, areas, sumsConf, sumsSource, totalCount: features.length, avgConf: features.length ? (totalConf / features.length).toFixed(1) : 0 };
+        }
+
+        function drawComparator(areasM1, areasM2) {
+            var container = document.getElementById('evolutionContainer');
+            container.innerHTML = '<div class="evo-container"></div>'; 
+            var inner = container.querySelector('.evo-container');
+            var diffs = [];
+            for (var cat in colors) {
+                var diff = areasM2[cat] - areasM1[cat];
+                if(Math.abs(diff) > 100) diffs.push({ label: cat, color: colors[cat], val: diff });
+            }
+            if(diffs.length === 0) { inner.innerHTML = "<div style='text-align:center; color:#999; padding:10px;'>Pas de différence notable.</div>"; return; }
+            var maxDiff = Math.max(...diffs.map(d => Math.abs(d.val)));
+            diffs.forEach(d => {
+                var widthPct = (Math.abs(d.val) / maxDiff) * 100;
+                var isPos = d.val > 0;
+                var displayVal = (d.val / 10000).toFixed(2) + " ha";
+                if(Math.abs(d.val) < 10000) displayVal = Math.round(d.val) + " m²";
+                inner.innerHTML += `<div class="evo-row"><div class="evo-lbl">${d.label}</div><div class="evo-track"><div class="evo-bar ${isPos?'evo-pos':'evo-neg'}" style="width:${widthPct/2}%; background:${d.color}"></div></div><div class="evo-value">${isPos?'+':''}${displayVal}</div></div>`;
+            });
+        }
+
+        function drawDonut(areas) {
             const svg = document.getElementById('interactiveDonut');
-            const legContainer = document.getElementById('legendContainer');
-            svg.innerHTML = ''; legContainer.innerHTML = '';
-            const cx=20, cy=20, r=15.915, stroke=4; let acc = 0;
+            svg.innerHTML = '';
 
-            values.forEach((pct, i) => {
-                const cat = categories[i];
-                if(pct <= 0) return;
+            const totalArea = Object.values(areas).reduce((a,b) => a + b, 0);
+            if (!totalArea) return;
+
+            let acc = 0;
+            const cx = 20, cy = 20, r = 15.915;
+
+            for (const cat in areas) {
+                const area = areas[cat];
+                if (area <= 0) continue;
+
+                const pct = (area / totalArea) * 100;
+
                 const startA = 2 * Math.PI * (acc / 100);
-                const endA = 2 * Math.PI * ((acc + pct) / 100);
-                const startX = cx + r * Math.cos(startA);
-                const startY = cy + r * Math.sin(startA);
-                const endX = cx + r * Math.cos(endA);
-                const endY = cy + r * Math.sin(endA);
+                const endA   = 2 * Math.PI * ((acc + pct) / 100);
+
+                const x1 = cx + r * Math.cos(startA);
+                const y1 = cy + r * Math.sin(startA);
+                const x2 = cx + r * Math.cos(endA);
+                const y2 = cy + r * Math.sin(endA);
+
                 const largeArc = pct > 50 ? 1 : 0;
-                acc += pct;
-                const d = `M ${startX} ${startY} A ${r} ${r} 0 ${largeArc} 1 ${endX} ${endY}`;
+
                 const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute('d', d); path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', cat.color); path.setAttribute('stroke-width', stroke);
-                path.setAttribute('class', 'donut-segment');
-                path.addEventListener('mouseenter', () => { document.getElementById('centerValue').innerText = pct + "%"; });
-                path.addEventListener('mouseleave', () => { document.getElementById('centerValue').innerText = totalStr; });
+                path.setAttribute(
+                    "d",
+                    `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`
+                );
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", colors[cat]);
+                path.setAttribute("stroke-width", 4);
+                path.setAttribute("class", "donut-segment");
+
                 svg.appendChild(path);
-                const div = document.createElement('div');
-                div.className = 'leg-item';
-                div.innerHTML = `<div class="leg-color" style="background:${cat.color}"></div>${cat.label} <b>${pct}%</b>`;
-                legContainer.appendChild(div);
-            });
-            document.getElementById('centerValue').innerText = totalStr;
+                acc += pct;
+            }
+
+            document.getElementById('centerValue').innerText =
+                (totalArea / 10000).toFixed(1) + " ha";
         }
 
-        function drawEvolution(data) {
-            const container = document.getElementById('evolutionContainer');
-            container.innerHTML = '';
-            const maxVal = Math.max(...data.map(d => Math.abs(d.value)));
-            data.forEach(item => {
-                if(Math.abs(item.value) < 5) return;
-                const isNeg = item.value < 0;
-                const widthPct = (Math.abs(item.value) / maxVal) * 100;
-                const row = document.createElement('div');
-                row.className = 'evo-row';
-                row.innerHTML = `
-                    <div class="evo-label">${item.label}</div>
-                    <div class="evo-track-container">
-                        <div class="evo-bar ${isNeg ? 'neg' : 'pos'}" style="width: 0%; background-color: ${item.color};"></div>
-                    </div>
-                    <div class="evo-value">${item.value > 0 ? '+' : ''}${item.value}</div>
-                `;
-                container.appendChild(row);
-                setTimeout(() => { row.querySelector('.evo-bar').style.width = (widthPct / 2) + '%'; }, 100);
-            });
+
+        function detectCategory(name) {
+            if(!name) return 'Artif'; var n = name.toUpperCase();
+            if(n.includes('EAU')) return 'Eau'; if(n.includes('BOIS') || n.includes('FORET')) return 'Forêt';
+            if(n.includes('NATURE') || n.includes('PELOUSE')) return 'Nature'; if(n.includes('AGRI') || n.includes('CULTURE')) return 'Agri';
+            return 'Artif';
         }
+        function getApproxArea(g) {
+            if(!g||!g.coordinates) return 0; var c = g.type==='Polygon'?g.coordinates[0]:g.coordinates[0][0];
+            var a=0; if(c.length>2){for(var i=0;i<c.length-1;i++){a+=(c[i][0]*81270*c[i+1][1]*111111)-(c[i+1][0]*81270*c[i][1]*111111);}} return Math.abs(a/2);
+        }
+        function resetView() {
+            document.getElementById('view-chart').classList.add('hidden');
+            document.getElementById('view-bars').classList.remove('hidden');
+            if(currentLayer) currentLayer.resetStyle();
+            map.fitBounds(L.geoJSON(geoDataM1).getBounds(), {padding:[20,20], animate: false});
+            document.getElementById('uxGuide').style.opacity = '1';
+            selectedDalleId = null;
+            document.getElementById('mapStatus').innerHTML = "";
+
+        }
+        function switchTab(t) {
+            document.querySelectorAll('.tab-link').forEach(b => b.classList.remove('active')); event.target.classList.add('active');
+            document.getElementById('tab-bilan').classList.toggle('hidden', t!=='bilan');
+            document.getElementById('tab-detail').classList.toggle('hidden', t!=='detail');
+            if(t==='detail') setTimeout(()=>miniMap.invalidateSize(), 100);
+        }
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                map.invalidateSize(true);
+            }, 200);
+        });
+
     </script>
 </body>
 </html>
