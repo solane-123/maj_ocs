@@ -134,6 +134,20 @@
 
         .map-overlay { position: absolute; top: 30px; left: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 15px; width: 320px; }
 
+        /* --- STYLE INTERRUPTEUR MÉTHODE --- */
+        .method-switch {
+            background: white; padding: 5px; border-radius: 30px; display: flex; gap: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 15px; width: 100%;
+        }
+        .method-btn {
+            flex: 1; border: none; padding: 10px; border-radius: 25px; background: transparent;
+            font-family: 'DM Sans'; font-weight: 700; font-size: 0.85rem; color: #999; cursor: pointer;
+            transition: 0.3s;
+        }
+        .method-btn.active {
+            background: var(--color-dark); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
         .capsule-select-wrapper {
             position: relative; background: #FFFFFF; border: 1px solid #ccc;
             border-radius: 50px; padding: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s;
@@ -274,6 +288,11 @@
             <div class="p3-layout">
                 <div class="p3-map-area">
                     <div class="map-overlay">
+                        <div class="method-switch">
+                            <button class="method-btn active" id="btn-m1" onclick="switchMethod('m1')">Méthode 1</button>
+                            <button class="method-btn" id="btn-m2" onclick="switchMethod('m2')">Méthode 2</button>
+                        </div>
+
                         <div class="capsule-select-wrapper">
                             <select id="dalleSelector" class="capsule-select" onchange="updatePage3(this.value)">
                                 <option value="" disabled selected>Chargement...</option>
@@ -284,7 +303,6 @@
                             <button class="filter-btn" style="background:var(--c-water)" onclick="toggleFilter('Eau', this)">Eau</button>
                             <button class="filter-btn" style="background:#88C425" onclick="toggleFilter('Nature', this)">Nature</button>
                             <button class="filter-btn" style="background:#3E8E41" onclick="toggleFilter('Forêt', this)">Forêt</button>
-                            
                             <button class="filter-btn" style="background:var(--c-agri)" onclick="toggleFilter('Agri', this)">Agri</button>
                             <button class="filter-btn" style="background:var(--c-artif)" onclick="toggleFilter('Artif', this)">Artif</button>
                         </div>
@@ -299,13 +317,13 @@
                     <div class="deck-container">
                         <div class="deck-card active" onclick="activateDeck(this)">
                             <div class="deck-header">
-                                <div class="deck-title">Indice de Confiance</div>
+                                <div class="deck-title" id="title-conf">Indice de Confiance</div>
                                 <span style="font-size:0.7rem; color:#888;">Moyenne (0-100)</span>
                             </div>
                             <div class="chart-content" id="chart-confiance"></div>
                         </div>
 
-                        <div class="deck-card" onclick="activateDeck(this)">
+                        <div class="deck-card" onclick="activateDeck(this)" id="card-sources">
                             <div class="deck-header">
                                 <div class="deck-title">Sources d'Accord</div>
                                 <span style="font-size:0.7rem; color:#888;">Moyenne Nb Sources</span>
@@ -324,33 +342,35 @@
             </div>
             <div style="width:100%;">
                 <div class="treemap-section">
-                    <div class="treemap-header"><h3 class="treemap-title">Couverture du sol</h3><span style="color:#999; font-weight:700;">NOV 2025</span></div>
-                    <div class="tm-container">
-                        <div class="tm-item" style="flex:51; background:var(--tm-mint);"><div class="tm-lbl">Herbacées</div><div class="tm-pct">51%</div></div>
-                        <div class="tm-item" style="flex:25; background:var(--tm-forest);"><div class="tm-lbl">Forêt</div><div class="tm-pct">25%</div></div>
-                        <div class="tm-col" style="flex:24;">
-                            <div class="tm-row">
-                                <div class="tm-item" style="flex:6; background:var(--tm-darkblue);"><div class="tm-lbl" style="font-size:0.8rem">Conifères</div></div>
-                                <div class="tm-item" style="flex:5; background:var(--c-water);"><div class="tm-lbl" style="font-size:0.8rem">Eau</div></div>
-                            </div>
-                            <div class="tm-row">
-                                <div class="tm-item" style="flex:1; background:var(--tm-bright);"></div>
-                                <div class="tm-item" style="flex:1; background:var(--tm-grey);"></div>
-                            </div>
+                    <div class="treemap-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 class="treemap-title">Répartition des Surfaces</h3>
+                            <span style="color:#999; font-weight:700; font-size:0.8rem;">ANALYSE PAR DALLE</span>
                         </div>
+                        <div class="capsule-select-wrapper" style="width:200px;">
+                            <select id="p4-dalleSelector" class="capsule-select" onchange="updatePage4_Top(this.value); updatePage4_Bottom(this.value);">
+                                <option value="all">Vue Globale</option>
+                            </select>
+                        </div>
+                        </div>
+
+                    <div class="tm-container" id="treemap-container" style="height:260px; display:flex; gap:4px; width:100%; border-radius:8px; overflow:hidden; background:#f0f0f0; margin-top:15px;">
+                        <p style="padding:20px; color:#999;">Chargement...</p>
                     </div>
+
+                    <div id="treemap-legend" style="display:flex; flex-wrap:wrap; gap:20px; margin-top:20px; justify-content:center;"></div>
                 </div>
                 <div class="treemap-section">
-                    <div class="treemap-header"><h3 class="treemap-title">Usages du sol</h3></div>
-                    <div class="tm-container">
-                        <div class="tm-item" style="flex:49; background:var(--tm-darkblue);"><div class="tm-lbl">Agriculture</div><div class="tm-pct">49%</div></div>
-                        <div class="tm-item" style="flex:32; background:var(--tm-grey);"><div class="tm-lbl">Sylviculture</div><div class="tm-pct">32%</div></div>
-                        <div class="tm-item" style="flex:10; background:var(--tm-forest);"><div class="tm-lbl">Naturel</div><div class="tm-pct">10%</div></div>
-                        <div class="tm-col" style="flex:9;">
-                            <div class="tm-item" style="flex:1; background:var(--tm-mint); font-size:0.7rem;">Résidentiel</div>
-                            <div class="tm-row"><div class="tm-item" style="flex:1; background:var(--tm-bright);"></div><div class="tm-item" style="flex:1; background:var(--tm-bright);"></div></div>
-                        </div>
+                    <div class="treemap-header">
+                        <h3 class="treemap-title">Usages du sol (Méthode 2)</h3>
+                        <span style="color:#999; font-weight:700; font-size:0.8rem;">ANALYSE COMPARATIVE</span>
                     </div>
+                    
+                    <div class="tm-container" id="treemap-container-2" style="height:260px; display:flex; gap:4px; width:100%; border-radius:8px; overflow:hidden; background:#f0f0f0;">
+                        <p style="padding:20px; color:#999;">Chargement Méthode 2...</p>
+                    </div>
+
+                    <div id="treemap-legend-2" style="display:flex; flex-wrap:wrap; gap:20px; margin-top:20px; justify-content:center;"></div>
                 </div>
             </div>
             <div style="text-align:center; margin-top:40px;"><a href="map.html" class="cta-btn">Accéder à la Carte Interactive <i class="fas fa-arrow-right"></i></a></div>
@@ -510,202 +530,372 @@
         // --- 4. PAGE 3 : DASHBOARD 5 CLASSES (FINAL) ---
         // ---------------------------------------------------------
 
-        var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.212, 2.355], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapViz);
-        
+        // ---------------------------------------------------------
+        // --- GESTION DES DONNÉES & PAGE 3/4 ---
+        // ---------------------------------------------------------
+
         var DALLE_ID_KEY = 'DALLE'; 
-        var globalGeoData = null;
-        var vizLayer = null;
         
-        // ETAT DES 5 FILTRES
-        var activeFilters = {
-            'Eau': true,
-            'Nature': true, // Pour la classe NATURE
-            'Forêt': true,  // Pour la classe BOIS
-            'Agri': true,   // Pour la classe AGRICULTURE
-            'Artif': true   // Pour la classe ARTIFICIALISE
-        };
+        // Stockage des deux datasets
+        var geoDataM1 = null; // Méthode 1
+        var geoDataM2 = null; // Méthode 2
+        
+        var globalGeoData = null; // Dataset actif
+        var currentMethod = 'm1'; // État actuel
+        
+        var vizLayer = null;
+        var activeFilters = { 'Eau': true, 'Nature': true, 'Forêt': true, 'Agri': true, 'Artif': true };
 
-        // CHARGEMENT
-        fetch('donne/GLOBAL_DALLES.geojson')
-            .then(r => r.json())
-            .then(data => {
-                globalGeoData = data;
-                populateDalleSelector(data);
-                var select = document.getElementById('dalleSelector');
-                if(select.options.length > 0) {
-                    select.selectedIndex = 0;
-                    updatePage3(select.value);
-                }
-            });
+        // 1. CHARGEMENT SIMULTANÉ DES DEUX FICHIERS
+        Promise.all([
+            fetch('donne/GLOBAL_DALLES.geojson').then(r => r.json()),
+            fetch('donne/METHODE_2.geojson').then(r => r.json())
+        ])
+        .then(([dataM1, dataM2]) => {
+            console.log("Fichiers chargés !");
+            geoDataM1 = dataM1;
+            geoDataM2 = dataM2;
 
-        function populateDalleSelector(data) {
-            var select = document.getElementById('dalleSelector');
-            select.innerHTML = "";
-            var dalles = new Set();
-            data.features.forEach(f => {
-                var val = f.properties[DALLE_ID_KEY];
-                if(val !== undefined && val !== null) dalles.add(val);
-            });
-            Array.from(dalles).sort((a,b)=>a-b).forEach(d => {
-                var opt = document.createElement('option');
-                opt.value = d; opt.innerText = "Dalle " + d;
-                select.appendChild(opt);
+            // Init Menu Page 3
+            globalGeoData = geoDataM1; // P3 commence sur M1
+            populateDalleSelector(globalGeoData, 'dalleSelector');
+            var s3 = document.getElementById('dalleSelector');
+            if(s3 && s3.options.length > 0) { s3.selectedIndex=0; updatePage3(s3.value); }
+
+            // Init Menu Page 4
+            populateDalleSelector(geoDataM1, 'p4-dalleSelector', true);
+            
+            // >>> LANCEMENT DES DEUX GRAPHIQUES P4 <<<
+            updatePage4_Top('all');     // Haut = M1
+            updatePage4_Bottom('all');  // Bas = M2
+        })
+        .catch(e => console.error("Erreur chargement :", e));
+
+
+        // --- 2. FONCTIONS COMMUNES (DONT POPULATEDALLESELECTOR) ---
+
+        // C'est la fonction qui manquait !
+        function populateDalleSelector(data, id, allOpt=false) {
+            var s = document.getElementById(id); 
+            if(!s) return;
+            
+            s.innerHTML = ""; // On vide le select
+            
+            if(allOpt) {
+                var oAll = document.createElement('option'); 
+                oAll.value = "all"; 
+                oAll.innerText = "Vue Globale";
+                s.appendChild(oAll);
+            }
+            
+            var d = new Set();
+            if(data && data.features) {
+                data.features.forEach(f => { 
+                    if(f.properties[DALLE_ID_KEY]) d.add(f.properties[DALLE_ID_KEY]); 
+                });
+            }
+            
+            Array.from(d).sort((a,b)=>a-b).forEach(v => {
+                var o = document.createElement('option'); 
+                o.value = v; 
+                o.innerText = "Dalle " + v; 
+                s.appendChild(o);
             });
         }
 
-        // --- C. DÉTECTION DES 5 CLASSES (C'est ici que ça se joue) ---
         function detectCategory(name) {
-            if(!name) return 'Autre';
-            var n = name.toUpperCase(); // On met en majuscule comme dans ton fichier
-            
-            // 1. EAU
+            if(!name) return 'Artif';
+            var n = name.toUpperCase();
             if(n.includes('EAU')) return 'Eau';
-            
-            // 2. BOIS -> Catégorie 'Forêt'
             if(n.includes('BOIS') || n.includes('FORET')) return 'Forêt';
-            
-            // 3. NATURE -> Catégorie 'Nature'
-            if(n.includes('NATURE')) return 'Nature';
-            
-            // 4. AGRICULTURE -> Catégorie 'Agri'
+            if(n.includes('NATURE') || n.includes('PELOUSE')) return 'Nature';
             if(n.includes('AGRI') || n.includes('CULTURE')) return 'Agri';
-            
-            // 5. ARTIFICIALISE -> Catégorie 'Artif'
-            if(n.includes('ARTIF') || n.includes('BATI')) return 'Artif';
-            
-            return 'Artif'; // Par défaut
+            return 'Artif';
         }
 
         function getCategoryColor(cat) {
             switch(cat) {
-                case 'Eau': return '#4A90E2';    // Bleu
-                case 'Nature': return '#88C425'; // Vert Clair (Herbe)
-                case 'Forêt': return '#3E8E41';  // Vert Foncé (Bois)
-                case 'Agri': return '#F2CA27';   // Jaune
-                case 'Artif': return '#D64541';  // Rouge
-                default: return '#cccccc';
+                case 'Eau': return '#4A90E2'; case 'Nature': return '#88C425';
+                case 'Forêt': return '#3E8E41'; case 'Agri': return '#F2CA27';
+                case 'Artif': return '#D64541'; default: return '#ccc';
             }
         }
 
-        // --- D. INTERACTION ---
-        function toggleFilter(category, btnElement) {
-            activeFilters[category] = !activeFilters[category];
-            if(activeFilters[category]) {
-                btnElement.classList.remove('inactive');
-                btnElement.style.opacity = "1";
-            } else {
-                btnElement.classList.add('inactive');
-                btnElement.style.opacity = "0.4";
-            }
-            if(vizLayer) vizLayer.setStyle(styleFeature);
+        // --- 3. PAGE 3 : CARTE INTERACTIVE ---
+        var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.212, 2.355], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapViz);
+
+        // FONCTION DE BASCULE (SWITCH)
+        function switchMethod(m) {
+            currentMethod = m;
+            
+            // UI Boutons
+            document.getElementById('btn-m1').className = m==='m1'?'method-btn active':'method-btn';
+            document.getElementById('btn-m2').className = m==='m2'?'method-btn active':'method-btn';
+            
+            // Swap Data
+            globalGeoData = (m === 'm1') ? geoDataM1 : geoDataM2;
+            
+            // Gestion Fiches (Sources off en M2)
+            document.getElementById('card-sources').style.display = m==='m1' ? 'flex' : 'none';
+            document.getElementById('title-conf').innerText = m==='m1' ? 'Indice de Confiance' : 'Score Final';
+
+            // Refresh P3 & P4 (Pour mettre à jour les données affichées)
+            var curDalle = document.getElementById('dalleSelector').value;
+            if(curDalle) updatePage3(curDalle); 
         }
 
-        // --- E. MISE À JOUR ---
+        function toggleFilter(cat, btn) {
+            activeFilters[cat] = !activeFilters[cat];
+            btn.style.opacity = activeFilters[cat]?"1":"0.4";
+            if(vizLayer) vizLayer.setStyle(styleFeatureP3);
+        }
+
         function updatePage3(dalleID) {
             if(!globalGeoData) return;
             document.getElementById('dashTitle').innerText = "Analyse Dalle " + dalleID;
-
+            
             var filtered = globalGeoData.features.filter(f => String(f.properties[DALLE_ID_KEY]) === String(dalleID));
-
+            
             if(vizLayer) mapViz.removeLayer(vizLayer);
-            vizLayer = L.geoJSON({type:"FeatureCollection", features:filtered}, {
-                style: styleFeature
-            }).addTo(mapViz);
-            
+            vizLayer = L.geoJSON({type:"FeatureCollection", features:filtered}, { style: styleFeatureP3 }).addTo(mapViz);
             if(filtered.length > 0) mapViz.fitBounds(vizLayer.getBounds());
-
-            var stats = calculateStats(filtered);
-            renderChart('chart-confiance', stats, 'conf');
-            renderChart('chart-sources', stats, 'src');
-        }
-
-        function styleFeature(feature) {
-            var rawName = feature.properties.CLASSE_FINALE || "";
-            var cat = detectCategory(rawName);
             
-            if(activeFilters[cat] === false) {
-                return { fillOpacity: 0, opacity: 0, stroke: false }; 
-            }
-            var col = getCategoryColor(cat);
-            return { fillColor: col, weight: 0.5, color: col, fillOpacity: 0.8 };
+            var stats = calculateStatsP3(filtered);
+            renderChartP3('chart-confiance', stats, 'conf');
+            if(currentMethod === 'm1') renderChartP3('chart-sources', stats, 'src');
         }
 
-        // --- F. STATISTIQUES (CORRIGÉE : NOMS DE COLONNES EXACTS) ---
-        function calculateStats(features) {
-            var groups = {};
+        function styleFeatureP3(f) {
+            // CORRECTION ICI : 'CLASSIFICATION_FINAL' (sans E)
+            var colName = currentMethod === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
+            
+            var cat = detectCategory(f.properties[colName]);
+            if(!activeFilters[cat]) return {opacity:0, fillOpacity:0};
+            var c = getCategoryColor(cat);
+            return {fillColor:c, weight:0.5, color:c, fillOpacity:0.8};
+        }
+
+        function calculateStatsP3(features) {
+            var grp = {};
+            
+            // 1. Choix de la colonne CLASSE (Attention au "FINAL" sans E pour la méthode 2)
+            var colClass = currentMethod === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
+            
+            // 2. Choix de la colonne SCORE (C'est ici qu'on corrige !)
+            // M1 -> INDICE_CONFIANCE_FINAL | M2 -> SCORE_CONFIANCE
+            var colScore = currentMethod === 'm1' ? 'INDICE_CONFIANCE_FINAL' : 'SCORE_CONFIANCE';
 
             features.forEach(f => {
                 var p = f.properties;
-                var rawName = p.CLASSE_FINALE || "Inconnu";
                 
-                // On récupère la catégorie (Forêt, Agri...)
-                var cat = detectCategory(rawName); 
-                var col = getCategoryColor(cat);
-
-                // Initialisation si la catégorie n'existe pas encore
-                if(!groups[cat]) { 
-                    groups[cat] = { count:0, sumConf:0, sumSrc:0, color: col };
-                }
-
-                // --- C'EST ICI QUE CA PLANTAIT AVANT ---
+                // On récupère la catégorie
+                var cat = detectCategory(p[colClass]);
                 
-                // 1. INDICE_CONFIANCE_FINAL (Sans 'DE')
-                // On vérifie si c'est un nombre direct ou une chaine
-                var valConf = p.INDICE_CONFIANCE_FINAL; 
-                var conf = 0;
-                if (typeof valConf === 'number') {
-                    conf = valConf;
-                } else if (typeof valConf === 'string') {
-                    conf = parseFloat(valConf.replace(',', '.'));
-                }
+                // Init du groupe si inexistant
+                if(!grp[cat]) grp[cat] = {c:0, sConf:0, sSrc:0, color:getCategoryColor(cat)};
+                
+                grp[cat].c++;
+                
+                // --- RECUPERATION DU SCORE ---
+                var val = p[colScore];
+                // Petite sécurité : si c'est du texte avec virgule (ex: "95,5"), on remplace par point
+                if(typeof val === 'string') val = parseFloat(val.replace(',','.'));
+                
+                grp[cat].sConf += (val || 0);
 
-                // 2. NB_SOURCES_ACCORD (Singulier)
-                var valSrc = p.NB_SOURCES_ACCORD;
-                var src = 0;
-                if (typeof valSrc === 'number') {
-                    src = valSrc;
-                } else if (typeof valSrc === 'string') {
-                    src = parseFloat(valSrc.replace(',', '.'));
+                // --- RECUPERATION DES SOURCES (Uniquement pour M1) ---
+                if(currentMethod === 'm1') {
+                    var valSrc = p.NB_SOURCES_ACCORD;
+                    if(typeof valSrc === 'string') valSrc = parseFloat(valSrc.replace(',','.'));
+                    grp[cat].sSrc += (valSrc || 0);
                 }
-
-                // On ajoute aux totaux
-                groups[cat].count++;
-                groups[cat].sumConf += conf;
-                groups[cat].sumSrc += src;
             });
-
-            // Calcul des moyennes et tri
-            return Object.keys(groups).map(k => {
-                var g = groups[k];
-                return {
-                    label: k, // "Forêt", "Nature", "Agri"...
-                    color: g.color,
-                    // toFixed(1) pour avoir 1 chiffre après la virgule (ex: 85.4)
-                    conf: g.count ? (g.sumConf / g.count).toFixed(1) : 0,
-                    src: g.count ? (g.sumSrc / g.count).toFixed(1) : 0
-                };
-            }).sort((a,b) => b.conf - a.conf); // Tri par indice de confiance
+            
+            // Calcul des moyennes finales
+            return Object.keys(grp).map(k=>({
+                label:k, 
+                color:grp[k].color,
+                conf:grp[k].c ? (grp[k].sConf/grp[k].c).toFixed(1) : 0,
+                src:grp[k].c ? (grp[k].sSrc/grp[k].c).toFixed(1) : 0
+            })).sort((a,b)=>b.conf-a.conf);
         }
 
-        function renderChart(id, data, key) {
-            var el = document.getElementById(id);
-            el.innerHTML = "";
-            var max = (key === 'conf') ? 100 : 5; 
-            data.forEach(d => {
-                var pct = (d[key] / max) * 100;
-                el.innerHTML += `
-                    <div class="chart-row">
-                        <div class="chart-lbl" style="width:50px; font-size:0.8rem;">${d.label}</div>
-                        <div class="chart-bg"><div class="chart-fill" style="width:${pct}%; background:${d.color}"></div></div>
-                        <div class="chart-val">${d[key]}</div>
+        function renderChartP3(id, data, key) {
+            var el = document.getElementById(id); el.innerHTML = "";
+            var max = (key==='conf')?100:5;
+            data.forEach(d=>{
+                var pct = (d[key]/max)*100;
+                el.innerHTML += `<div class="chart-row"><div class="chart-lbl" style="width:50px;">${d.label}</div><div class="chart-bg"><div class="chart-fill" style="width:${pct}%; background:${d.color}"></div></div><div class="chart-val">${d[key]}</div></div>`;
+            });
+        }
+        function activateDeck(el) { document.querySelectorAll('.deck-card').forEach(c=>c.classList.remove('active')); el.classList.add('active'); }
+
+
+        // =========================================================
+        // 6. PAGE 4 : TREEMAPS (HAUT = M1, BAS = M2)
+        // =========================================================
+
+        // --- PARTIE HAUTE : MÉTHODE 1 (CLASSE_FINALE) ---
+        function updatePage4_Top(targetDalle) {
+            // On force l'utilisation de geoDataM1
+            if(!geoDataM1) return; 
+            if(!targetDalle) targetDalle = document.getElementById('p4-dalleSelector').value;
+
+            // Stats M1
+            var stats = { 'Eau':{area:0,c:0,col:'#4A90E2'}, 'Nature':{area:0,c:0,col:'#88C425'}, 'Forêt':{area:0,c:0,col:'#3E8E41'}, 'Agri':{area:0,c:0,col:'#F2CA27'}, 'Artif':{area:0,c:0,col:'#D64541'} };
+            var totalArea = 0;
+
+            geoDataM1.features.forEach(f => {
+                if(targetDalle !== 'all' && String(f.properties[DALLE_ID_KEY]) !== String(targetDalle)) return;
+                
+                // M1 utilise CLASSE_FINALE
+                var cat = detectCategory(f.properties['CLASSE_FINALE']);
+                var area = getApproxArea(f.geometry);
+                if(stats[cat]) { stats[cat].area += area; stats[cat].c++; totalArea += area; }
+            });
+
+            drawTreemap(stats, totalArea, 'treemap-container', 'treemap-legend');
+        }
+
+        // --- PARTIE BASSE : MÉTHODE 2 (CLASSIFICATION_FINAL) ---
+        function updatePage4_Bottom(targetDalle) {
+            // On force l'utilisation de geoDataM2
+            if(!geoDataM2) return;
+            // On utilise le même sélecteur de dalle pour que les deux graphiques bougent ensemble
+            if(!targetDalle) targetDalle = document.getElementById('p4-dalleSelector').value;
+
+            // Stats M2
+            var stats = { 'Eau':{area:0,c:0,col:'#4A90E2'}, 'Nature':{area:0,c:0,col:'#88C425'}, 'Forêt':{area:0,c:0,col:'#3E8E41'}, 'Agri':{area:0,c:0,col:'#F2CA27'}, 'Artif':{area:0,c:0,col:'#D64541'} };
+            var totalArea = 0;
+
+            geoDataM2.features.forEach(f => {
+                if(targetDalle !== 'all' && String(f.properties[DALLE_ID_KEY]) !== String(targetDalle)) return;
+                
+                // M2 utilise CLASSIFICATION_FINAL (sans E)
+                var cat = detectCategory(f.properties['CLASSIFICATION_FINAL']);
+                var area = getApproxArea(f.geometry);
+                if(stats[cat]) { stats[cat].area += area; stats[cat].c++; totalArea += area; }
+            });
+
+            drawTreemap(stats, totalArea, 'treemap-container-2', 'treemap-legend-2');
+        }
+
+        // --- FONCTION DE DESSIN COMMUNE ---
+        // --- FONCTION DE DESSIN TREEMAP STYLE "PUZZLE" ---
+        function drawTreemap(stats, totalArea, containerId, legendId) {
+            var cont = document.getElementById(containerId); 
+            var leg = document.getElementById(legendId);
+            if(!cont || !leg) return;
+
+            // 1. Reset et Style du conteneur (IMPORTANT pour le positionnement)
+            cont.innerHTML = ""; 
+            leg.innerHTML = "";
+            cont.style.position = "relative"; // Nécessaire pour les blocs absolus
+
+            if(totalArea === 0) { 
+                cont.innerHTML="<p style='padding:20px; color:#999;'>Aucune donnée</p>"; 
+                return; 
+            }
+
+            // 2. Préparation des données (Tri : du plus gros au plus petit)
+            var items = Object.keys(stats)
+                .map(k => ({ k: k, ...stats[k], pct: (stats[k].area / totalArea) * 100 }))
+                .sort((a,b) => b.pct - a.pct);
+
+            // 3. Algorithme de découpe récursive (Puzzle)
+            // On définit un rectangle virtuel de 0 à 100%
+            var x = 0, y = 0, w = 100, h = 100;
+            var remainingArea = totalArea; // Surface restante à placer
+
+            items.forEach(item => {
+                // Même si la surface est minuscule, on la traite
+                if(item.area <= 0) return;
+
+                // Calcul de la part relative dans l'espace RESTANT
+                // Ex: Si Agri prend 50% du total, il prend 50% de l'espace restant au début.
+                // Ensuite, Forêt prend 30% du total, mais peut-être 60% de l'espace qu'il reste.
+                var share = item.area / remainingArea; 
+                
+                // Sécurité mathématique (ne devrait pas arriver mais on blinde)
+                if(share > 1) share = 1;
+
+                var boxW, boxH, boxX, boxY;
+
+                // LOGIQUE "SMART CUT" : On coupe toujours perpendiculairement au côté le plus long
+                // pour éviter les rectangles trop fins (bandelettes).
+                if (w >= h) {
+                    // Plus large que haut -> Coupe Verticale (Gauche vers Droite)
+                    boxW = w * share;
+                    boxH = h;
+                    boxX = x;
+                    boxY = y;
+                    
+                    // On avance le curseur X et on réduit la largeur restante
+                    x += boxW;
+                    w -= boxW;
+                } else {
+                    // Plus haut que large -> Coupe Horizontale (Haut vers Bas)
+                    boxW = w;
+                    boxH = h * share;
+                    boxX = x;
+                    boxY = y;
+                    
+                    // On avance le curseur Y et on réduit la hauteur restante
+                    y += boxH;
+                    h -= boxH;
+                }
+
+                // Mise à jour de la surface restante pour le prochain tour
+                remainingArea -= item.area;
+
+                // 4. Affichage (HTML)
+                // Seuil d'affichage du texte : on ne l'affiche que si le bloc est assez gros (>3%)
+                var hideText = item.pct < 3 ? 'display:none' : '';
+                // Taille de police adaptative
+                var fSize = item.pct < 10 ? '0.75rem' : '1.1rem';
+
+                cont.innerHTML += `
+                    <div class="tm-item" title="${item.k}: ${item.pct.toFixed(2)}% (${item.c} parcelles)" 
+                         style="position:absolute; 
+                                left:${boxX}%; top:${boxY}%; 
+                                width:${boxW}%; height:${boxH}%; 
+                                background:${item.col}; 
+                                border:2px solid white; box-sizing:border-box;
+                                display:flex; flex-direction:column; justify-content:center; align-items:center; 
+                                color:white; overflow:hidden; transition:0.2s;">
+                        
+                        <div style="${hideText}; font-weight:700; font-size:${fSize}; text-shadow:0 1px 2px rgba(0,0,0,0.2); text-align:center; line-height:1.1;">
+                            ${item.k}
+                        </div>
+                        <div style="${hideText}; font-size:${fSize}; opacity:0.9;">
+                            ${item.pct.toFixed(0)}%
+                        </div>
+                    </div>`;
+
+                // 5. Légende (Toujours complète, même pour l'eau à 0%)
+                leg.innerHTML += `
+                    <div style="display:flex; align-items:center; gap:8px; background:white; padding:6px 12px; border-radius:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                        <div style="width:10px; height:10px; background:${item.col}; border-radius:50%;"></div>
+                        <div>
+                            <div style="font-weight:700; font-size:0.85rem;">${item.k}</div>
+                            <div style="font-size:0.75rem; color:#666;">
+                                <strong>${item.pct.toFixed(1)}%</strong> <span style="color:#aaa;">(${item.c} parcelles)</span>
+                            </div>
+                        </div>
                     </div>`;
             });
         }
-        
-        function activateDeck(el) {
-            document.querySelectorAll('.deck-card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
+
+        // OUTILS MATHS
+        function getApproxArea(g) {
+            if(!g||!g.coordinates) return 0;
+            if(g.type==='Polygon') return polygonArea(g.coordinates[0]);
+            if(g.type==='MultiPolygon') { var a=0; for(var i=0;i<g.coordinates.length;i++) a+=polygonArea(g.coordinates[i][0]); return a; }
+            return 0;
+        }
+        function polygonArea(c) {
+            var a=0; if(c.length>2){ for(var i=0;i<c.length-1;i++){ a+=(c[i][0]*81270*c[i+1][1]*111111)-(c[i+1][0]*81270*c[i][1]*111111); }} return Math.abs(a/2);
         }
     </script>
 </body>
