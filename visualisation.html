@@ -137,10 +137,16 @@
         .text-block p { font-size: 1rem; line-height: 1.6; color: #666; margin: 0; }
         .highlight { color: var(--color-vivid); font-weight: 700; }
         /* --- 5. PAGE 2 (SPLIT) --- */
+        /* --- 5. PAGE 2 (SPLIT - FIXE) --- */
         .compare-wrapper { width: 50%; height: 100vh; display: flex; border-left: 2px solid #fff; }
-        .map-split { width: 50%; height: 100%; position: relative; border-right: 2px solid #fff; transition: width 0.4s var(--ease-premium); }
-        .map-split:hover { width: 65%; }
-        .map-split:hover + .map-split { width: 35%; }
+        
+        .map-split { 
+            width: 50%;       /* Largeur fixe */
+            height: 100%; 
+            position: relative; 
+            border-right: 2px solid #fff; 
+            /* J'ai supprimé la ligne 'transition' et les blocs ':hover' */
+        }
 
         .map-badge-pill {
             position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
@@ -174,7 +180,7 @@
             transition: 0.3s;
         }
         .method-btn.active {
-            background: var(--color-dark); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            background: var(--color-vivid); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
         .capsule-select-wrapper {
@@ -263,6 +269,74 @@
         .split-layout { display: flex; width: 100%; height: 100vh; }
         .text-panel { width: 40%; padding: 0 5%; display: flex; flex-direction: column; justify-content: center; background: var(--bg-main); overflow-y: auto; }
         .viz-panel { width: 60%; position: relative; }
+        
+        /* =========================
+        MODE NUIT
+        ========================== */
+
+        body.night {
+            --bg-main: #0F172A;
+            --bg-soft: #020617;
+
+            --color-dark: #E5E7EB;
+            --text-body: #CBD5E1;
+
+            --color-vivid: #F59E0B;   /* orange un peu plus doux */
+            --color-accent: #38BDF8;
+        }
+
+        /* Ajustements spécifiques */
+        body.night {
+            background-color: var(--bg-main);
+            color: var(--text-body);
+        }
+
+        /* Cartes, panneaux, cards */
+        body.night .text-panel,
+        body.night .deck-card,
+        body.night .context-box,
+        body.night .legend-box,
+        body.night .method-switch,
+        body.night .capsule-select-wrapper,
+        body.night .map-badge-pill {
+            background: #020617;
+            color: var(--text-body);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        /* Titres */
+        body.night h2,
+        body.night h3,
+        body.night .deck-title,
+        body.night .big-number {
+            color: var(--color-dark);
+        }
+
+        /* Fonds gris clairs */
+        body.night .chart-bg {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Séparateurs */
+        body.night .treemap-header,
+        body.night .page-section {
+            border-color: rgba(255,255,255,0.06);
+        }
+        body.night #treemap-legend > div,
+        body.night #treemap-legend-2 > div {
+            background: rgba(255,255,255,0.06) !important;
+            color: var(--text-body);
+        }
+        body.night .cta-btn {
+            background: var(--color-vivid);
+            color: #020617;
+            box-shadow: 0 10px 30px rgba(245,158,11,0.35);
+        }
+        body.night p,
+        body.night span {
+            color: var(--text-body);
+        }
+
 
     </style>
 </head>
@@ -277,7 +351,11 @@
         </div>
     </aside>
 
-    <div class="burger"><div></div><div></div><div></div></div>
+    <!--<div class="burger"><div></div><div></div><div></div></div>-->
+
+    <div class="burger" onclick="toggleNight()" title="Mode nuit">
+        <i class="fas fa-moon"></i>
+    </div>
 
     <div class="main-content">
         
@@ -389,7 +467,7 @@
                     <div id="map-viz"></div>
                 </div>
 
-                <div class="text-panel" style="background: white;">
+                <div class="text-panel">
                     <div style="padding: 40px;">
                         <span class="subtitle">Analyse Statistique</span>
                         <h2 id="dashTitle" style="margin-top:0;">Exploration<br>Probabiliste.</h2>
@@ -458,7 +536,7 @@
                     Classification basée principalement sur la couverture biophysique détectée par satellite.
                 </p>
 
-                <div class="tm-container" id="treemap-container" style="height:220px; background:#f4f4f4;"></div>
+                <div class="tm-container" id="treemap-container" style="height:220px; background:var(--bg-soft);"></div>
                 <div id="treemap-legend" style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px; justify-content:center;"></div>
             </div>
 
@@ -488,6 +566,32 @@
     </div>
 
     <script>
+        // Remplace les lignes 739-740 par ça :
+        const URL_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+        const URL_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+        function updateLeafletTheme() {
+            const night = document.body.classList.contains('night');
+            const urlToUse = night ? URL_DARK : URL_LIGHT;
+
+            // Liste des cartes concernées (Page 2 utilise le satellite, donc on ne la touche pas)
+            const mapsToUpdate = [mapHome, mapViz];
+
+            mapsToUpdate.forEach(map => {
+                if (!map) return;
+
+                // 1. On supprime UNIQUEMENT les anciennes tuiles de fond (CartoDB)
+                map.eachLayer(layer => {
+                    if (layer instanceof L.TileLayer && layer._url && layer._url.includes('cartocdn')) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // 2. On crée une NOUVELLE instance unique pour cette carte précise
+                L.tileLayer(urlToUse).addTo(map);
+            });
+        }
+
         // --- NAVIGATION ---
         function scrollToId(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
         const observer = new IntersectionObserver((entries) => {
@@ -501,17 +605,42 @@
                     if(activeId === 'page2') { 
                         setTimeout(() => { mapLeft.invalidateSize(); mapRight.invalidateSize(); }, 200); 
                     }
+                    if(activeId === 'page3') { 
+                        setTimeout(() => { mapViz.invalidateSize(); }, 200); 
+                    }
+
                 }
             });
         }, { threshold: 0.2 });
         document.querySelectorAll('.page-section').forEach(s => observer.observe(s));
 
         // --- PAGE 1 (MAP ACCUEIL) ---
-        var mapHome = L.map('map-home', {zoomControl:false, attributionControl:false}).setView([43.1026, 2.4140], 9);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapHome);
-        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
-        .then(r=>r.json()).then(d=>L.geoJSON(d,{style:{color:'#E89C48', weight:1, fillOpacity:0.1}}).addTo(mapHome));
+        var mapHome = L.map('map-home', {
+            zoomControl:false,
+            attributionControl:false
+        });
 
+        L.tileLayer(URL_LIGHT).addTo(mapHome);
+
+        fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/11-aude/departement-11-aude.geojson')
+        .then(r => r.json())
+        .then(d => {
+            const dep = L.geoJSON(d, {
+                style:{
+                    color:'#E89C48',
+                    weight:1.5,
+                    fillOpacity:0.08
+                }
+            }).addTo(mapHome);
+
+            // 🔑 LA CLÉ ABSOLUE
+            mapHome.fitBounds(dep.getBounds(), {
+                padding: [40,40]
+            });
+
+            // 🔧 sticky + scroll = recalcul obligatoire
+            setTimeout(() => mapHome.invalidateSize(), 200);
+        });
 // ---------------------------------------------------------
         // --- 3. PAGE 2 : COMPARATEUR OSO vs COSIA (LE COEUR) ---
         // ---------------------------------------------------------
@@ -733,7 +862,10 @@
 
         // --- 3. PAGE 3 : CARTE INTERACTIVE ---
         var mapViz = L.map('map-viz', {zoomControl:false}).setView([43.212, 2.355], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapViz);
+        L.tileLayer(URL_LIGHT).addTo(mapViz);
+
+
+
 
         // FONCTION DE BASCULE (SWITCH)
         function switchMethod(m) {
@@ -985,7 +1117,7 @@
 
                 // 5. Légende (Toujours complète, même pour l'eau à 0%)
                 leg.innerHTML += `
-                    <div style="display:flex; align-items:center; gap:8px; background:white; padding:6px 12px; border-radius:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                    <div style="display:flex; align-items:center; gap:8px; background:var(--bg-soft); padding:6px 12px; border-radius:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                         <div style="width:10px; height:10px; background:${item.col}; border-radius:50%;"></div>
                         <div>
                             <div style="font-weight:700; font-size:0.85rem;">${item.k}</div>
@@ -1015,6 +1147,26 @@
             Eau:    getComputedStyle(document.documentElement).getPropertyValue('--c-water').trim(),
             Foret:  getComputedStyle(document.documentElement).getPropertyValue('--c-foret').trim()
        };
+
+       function toggleNight() {
+            document.body.classList.toggle('night');
+
+            localStorage.setItem(
+                'theme',
+                document.body.classList.contains('night') ? 'night' : 'day'
+            );
+
+            updateLeafletTheme();
+        }
+
+
+        /* Restauration au chargement */
+        (function () {
+            if (localStorage.getItem('theme') === 'night') {
+                document.body.classList.add('night');
+                updateLeafletTheme();
+            }
+        })();
 
     </script>
 </body>
