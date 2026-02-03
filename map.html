@@ -125,7 +125,7 @@
         .kpi-val { font-size: 1.1rem; font-weight: 700; color: var(--color-dark); }
         .kpi-lbl { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top: 4px; }
 
-        .chart-wrapper { position: relative; width: 150px; height: 150px; margin: 0 auto 20px auto; }
+        .chart-wrapper { position: relative; width: 150px; height: 150px; margin: 20px auto; }
         svg.donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
         path.donut-segment { transition: all 0.3s; cursor: pointer; stroke-linejoin: round; }
         path.donut-segment:hover { stroke-width: 8 !important; opacity: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.2)); }
@@ -143,7 +143,7 @@
         .meta-tag { background: #fff; border: 1px solid #eee; padding: 1px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 0.65rem; }
         .tag-good { color: #3E8E41; background: #e8f5e9; } .tag-mid { color: #F2CA27; background: #fffde7; } .tag-bad { color: #D64541; background: #ffebee; }
 
-        .evolution-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .evolution-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; margin: 50px; }
         .detail-subtitle { font-family: 'Playfair Display'; font-weight: 700; font-size: 1rem; color: var(--color-dark); margin-bottom: 10px; display: block; }
         .evo-row { display: flex; align-items: center; height: 20px; font-size: 0.75rem; margin-top:8px;}
         .evo-lbl { width: 60px; text-align: right; padding-right: 10px; color: #666; }
@@ -457,17 +457,51 @@
             var focusDiv = document.getElementById('parcelFocusContainer');
             if(featureClicked) {
                 var p = featureClicked.properties;
+                
+                // --- Données Textuelles ---
+                var nomCom = p.NOM_COM || '-'; 
+                var section = p.SECTION || '?';
+                var feuille = p.FEUILLE || '?';
+                
+                // --- Données Métriques ---
                 var colClass = currentMethod === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
                 var colConf = currentMethod === 'm1' ? 'INDICE_CONFIANCE_FINAL' : 'SCORE_CONFIANCE';
                 var cat = detectCategory(p[colClass]);
                 var areaVal = getApproxArea(featureClicked.geometry).toFixed(0);
-                var rawScore = p[colConf]; if(typeof rawScore==='string') rawScore=parseFloat(rawScore.replace(',','.'));
+                
+                var rawScore = p[colConf]; 
+                if(typeof rawScore === 'string') rawScore = parseFloat(rawScore.replace(',','.'));
                 var scoreDisplay = rawScore ? rawScore.toFixed(1) : "--";
-                var sourceHtml = (currentMethod === 'm1') ? `<div class="pf-row"><span>Sources</span><span class="pf-val">${p['NB_SOURCES_ACCORD']||'?'}</span></div>` : "";
+
+                // --- RECUPERATION ROBUSTE DES SOURCES ---
+                // On teste toutes les variantes possibles de nom de colonne
+                var rawSrc = p['NB_SOURCES_ACCORD'] || p['NB_SOURCE'] || p['nb_source'] || p['nb_sources'] || 0;
+                // On force la conversion en nombre (ex: "2" -> 2, "2.5" -> 2.5)
+                var valSource = parseFloat(String(rawSrc).replace(',', '.')) || 0;
+
+                // Construction HTML de la ligne source (seulement si > 0)
+                var sourceHtml = (valSource > 0) 
+                    ? `<div class="pf-row"><span>Sources</span><span class="pf-val">${valSource}</span></div>` 
+                    : ""; // Si tu veux forcer l'affichage même à 0 pour tester, remplace "" par :
+                          // `<div class="pf-row"><span>Sources</span><span class="pf-val" style="color:red;">0 (Introuvable)</span></div>`
+
+                var badgeStyle = "background:#eee; padding:3px 6px; border-radius:4px; font-size:0.65rem; color:#333; display:flex; align-items:center; white-space:nowrap;";
 
                 focusDiv.innerHTML = `
                     <div class="parcel-focus-card" style="border-left-color:${colors[cat]}">
-                        <div class="pf-header"><span style="color:${colors[cat]}">PARCELLE SÉLECTIONNÉE</span><span style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.7rem; color:#333;">ID: ${p.NUMERO || p.id || '?'}</span></div>
+                        <div class="pf-header" style="display:flex; align-items:center; justify-content:space-between;">
+                            <span style="color:${colors[cat]}; font-weight:700;">PARCELLE</span>
+                            <div style="display:flex; gap:4px;">
+                                <span style="${badgeStyle}" title="Section / Feuille">
+                                    <i class="fas fa-layer-group" style="margin-right:3px; opacity:0.5;"></i> ${section} / ${feuille}
+                                </span>
+                                <span style="${badgeStyle} font-weight:700;">
+                                    ID: ${p.NUMERO || p.id || '?'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="pf-row"><span>Commune</span><span class="pf-val" style="text-transform:uppercase;">${nomCom}</span></div>
                         <div class="pf-row"><span>Classe</span><span class="pf-val" style="color:${colors[cat]}">${cat}</span></div>
                         <div class="pf-row"><span>Surface</span><span class="pf-val">${areaVal} m²</span></div>
                         <div class="pf-row"><span>Confiance IA</span><span class="pf-val">${scoreDisplay} / 100</span></div>
@@ -475,14 +509,13 @@
                     </div>`;
             } else { focusDiv.innerHTML = ""; }
 
-            // 2. STATS DALLE
+            // 2. STATS DALLE (Reste inchangé)
             var activeData = currentMethod === 'm1' ? geoDataM1 : geoDataM2;
             var cacheKey = currentMethod + '_' + dalleId;
             if (!statsCache[cacheKey]) {
                 statsCache[cacheKey] = calculateStats(activeData, dalleId, currentMethod);
             }
             var stats = statsCache[cacheKey];
-
 
             document.getElementById('kpiContainer').innerHTML = `
                 <div class="kpi-card"><span class="kpi-val">${stats.avgConf}</span><span class="kpi-lbl">Confiance Moy.</span></div>
@@ -494,31 +527,39 @@
             statsCache['m1_'+dalleId] ??= calculateStats(geoDataM1, dalleId, 'm1');
             statsCache['m2_'+dalleId] ??= calculateStats(geoDataM2, dalleId, 'm2');
 
+            // --- C'EST ICI QU'IL MANQUAIT LES DEFINITIONS ---
             var statsM1 = statsCache['m1_'+dalleId];
             var statsM2 = statsCache['m2_'+dalleId];
+            // -----------------------------------------------
 
-
-            drawComparator(statsM1.areas, statsM2.areas);
+            // Maintenant on peut comparer les comptes
+            drawComparator(statsM1.counts, statsM2.counts);
+            
             document.getElementById('mapStatus').innerHTML =
                 `Méthode <strong>${currentMethod.toUpperCase()}</strong> · Dalle <strong>#${dalleId}</strong>`;
-
         }
 
         // LEGENDE DETAILLEE AVEC BADGES
         function drawDetailedLegend(stats) {
             var container = document.getElementById('statsList');
             container.innerHTML = "";
-            var sortedCats = Object.keys(stats.areas).sort((a,b) => stats.areas[b] - stats.areas[a]); 
+            var sortedCats = Object.keys(stats.areas).sort((a,b) => stats.areas[b] - stats.areas[a]);
+            
             sortedCats.forEach(cat => {
                 if(stats.counts[cat] === 0) return;
-                var pct = (stats.counts[cat] / stats.totalCount) * 100; 
+                
+                var pct = (stats.counts[cat] / stats.totalCount) * 100;
                 var confCat = (stats.sumsConf[cat] / stats.counts[cat]).toFixed(1);
                 var tagClass = confCat < 50 ? 'tag-bad' : (confCat > 80 ? 'tag-good' : 'tag-mid');
+                
                 var sourceBadge = "";
-                if(currentMethod === 'm1' && stats.sumsSource[cat]) {
-                    var avgSrc = (stats.sumsSource[cat] / stats.counts[cat]).toFixed(1);
-                    sourceBadge = `<div class="meta-tag"><span>${avgSrc} src</span></div>`;
+                // On affiche dès qu'il y a des données de sources (peu importe la méthode)
+                if(stats.sumsSource[cat] > 0) {
+                    var valMediane = stats.mediansSource[cat]; 
+                    var displayMed = Number.isInteger(valMediane) ? valMediane : valMediane.toFixed(1);
+                    sourceBadge = `<div class="meta-tag"><span>${displayMed} src</span></div>`;
                 }
+
                 container.innerHTML += `
                     <div class="stat-item">
                         <div class="stat-header">
@@ -538,40 +579,85 @@
         function calculateStats(data, dalleIdFilter, method) {
             var colClass = method === 'm1' ? 'CLASSE_FINALE' : 'CLASSIFICATION_FINAL';
             var colConf = method === 'm1' ? 'INDICE_CONFIANCE_FINAL' : 'SCORE_CONFIANCE';
-            var colSource = 'NB_SOURCES_ACCORD';
+            
             var features = dalleIdFilter ? data.features.filter(f => String(f.properties['DALLE']) === String(dalleIdFilter)) : data.features;
+            
             var counts = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
             var areas = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
             var sumsConf = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
             var sumsSource = { 'Eau':0, 'Nature':0, 'Forêt':0, 'Agri':0, 'Artif':0 };
+            var sourcesList = { 'Eau':[], 'Nature':[], 'Forêt':[], 'Agri':[], 'Artif':[] };
+            
             var totalConf = 0;
 
             features.forEach(f => {
-                var p = f.properties; var cat = detectCategory(p[colClass]); var area = getApproxArea(f.geometry);
-                counts[cat]++; areas[cat] += area;
-                var c = parseFloat(String(p[colConf]).replace(',','.')) || 0; sumsConf[cat] += c; totalConf += c;
-                if(method === 'm1') { var s = parseFloat(String(p[colSource]).replace(',','.')) || 0; sumsSource[cat] += s; }
+                var p = f.properties;
+                var cat = detectCategory(p[colClass]);
+                var area = getApproxArea(f.geometry);
+                
+                if(counts[cat] !== undefined) {
+                    counts[cat]++;
+                    areas[cat] += area;
+                    
+                    var c = parseFloat(String(p[colConf] || 0).replace(',','.')) || 0;
+                    sumsConf[cat] += c;
+                    totalConf += c;
+                    
+                    // Récupération NB_SOURCES (Singulier ou Pluriel selon fichier)
+                    var valSource = p['NB_SOURCES_ACCORD'] || p['NB_SOURCE'] || p['NB_SOURCES'] || 0;
+                    var s = parseFloat(String(valSource).replace(',','.')) || 0;
+                    
+                    if(s > 0) {
+                        sumsSource[cat] += s;
+                        sourcesList[cat].push(s);
+                    }
+                }
             });
-            return { counts, areas, sumsConf, sumsSource, totalCount: features.length, avgConf: features.length ? (totalConf / features.length).toFixed(1) : 0 };
+
+            var mediansSource = {};
+            for(var key in sourcesList) {
+                mediansSource[key] = getMedian(sourcesList[key]);
+            }
+
+            return { counts, areas, sumsConf, sumsSource, mediansSource, totalCount: features.length, avgConf: features.length ? (totalConf / features.length).toFixed(1) : 0 };
         }
 
-        function drawComparator(areasM1, areasM2) {
+        function drawComparator(countsM1, countsM2) {
             var container = document.getElementById('evolutionContainer');
             container.innerHTML = '<div class="evo-container"></div>'; 
             var inner = container.querySelector('.evo-container');
+            
             var diffs = [];
             for (var cat in colors) {
-                var diff = areasM2[cat] - areasM1[cat];
-                if(Math.abs(diff) > 100) diffs.push({ label: cat, color: colors[cat], val: diff });
+                var diff = countsM2[cat] - countsM1[cat];
+                if(diff !== 0) {
+                    diffs.push({ label: cat, color: colors[cat], val: diff });
+                }
             }
-            if(diffs.length === 0) { inner.innerHTML = "<div style='text-align:center; color:#999; padding:10px;'>Pas de différence notable.</div>"; return; }
+            
+            if(diffs.length === 0) { 
+                inner.innerHTML = "<div style='text-align:center; color:#999; padding:10px;'>Aucun changement.</div>"; 
+                return; 
+            }
+            
             var maxDiff = Math.max(...diffs.map(d => Math.abs(d.val)));
+            
             diffs.forEach(d => {
                 var widthPct = (Math.abs(d.val) / maxDiff) * 100;
                 var isPos = d.val > 0;
-                var displayVal = (d.val / 10000).toFixed(2) + " ha";
-                if(Math.abs(d.val) < 10000) displayVal = Math.round(d.val) + " m²";
-                inner.innerHTML += `<div class="evo-row"><div class="evo-lbl">${d.label}</div><div class="evo-track"><div class="evo-bar ${isPos?'evo-pos':'evo-neg'}" style="width:${widthPct/2}%; background:${d.color}"></div></div><div class="evo-value">${isPos?'+':''}${displayVal}</div></div>`;
+                var displayVal = (isPos ? '+' : '') + d.val; 
+                
+                // --- MODIFICATION ICI (Largeur + Texte) ---
+                inner.innerHTML += `
+                    <div class="evo-row">
+                        <div class="evo-lbl">${d.label}</div>
+                        <div class="evo-track">
+                            <div class="evo-bar ${isPos?'evo-pos':'evo-neg'}" style="width:${widthPct/2}%; background:${d.color}"></div>
+                        </div>
+                        <div class="evo-value" style="width:90px; text-align:right;">
+                            ${displayVal} <span style="font-weight:400; font-size:0.7em; color:#888;">parcelles</span>
+                        </div>
+                    </div>`;
             });
         }
 
@@ -651,6 +737,12 @@
                 map.invalidateSize(true);
             }, 200);
         });
+        function getMedian(arr) {
+            if (!arr || arr.length === 0) return 0;
+            arr.sort(function(a, b) { return a - b; });
+            var mid = Math.floor(arr.length / 2);
+            return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+        }
 
     </script>
 </body>

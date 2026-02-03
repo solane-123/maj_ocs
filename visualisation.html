@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aude - Mise à jour de la couche d'occupation du sol</title>
+    <title>Aude Analytics - Final Fixed</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
@@ -17,14 +17,15 @@
     <style>
         /* --- 1. VARIABLES --- */
         :root {
-            --bg-main: #FFFEFA;
-            --color-vivid: #E89C48;
-            --color-dark: #1A3C34;
-            --color-accent: #00B2E3;
-            --text-body: #666666;
+            --bg-main: #F9FAFB;
+            --bg-soft: #F1F5F9;
+            --color-vivid: #f98f16;
+            --color-dark: #0F172A;
+            --color-accent: #38BDF8;
+            --text-body: #475569;
             
             /* Dataviz */
-            --c-artif: #D64541; --c-agri: #F2CA27; --c-nature: #88C425; --c-water: #4A90E2;
+            --c-artif: #ec7a7a; --c-agri: #F2CA27; --c-nature: #699a1c; --c-water: #4A90E2; --c-foret: #835217;
             
             /* Treemaps */
             --tm-mint: #A0D9B4; --tm-forest: #56B880; --tm-darkblue: #3B4A6B; 
@@ -283,7 +284,7 @@
         <section class="page-section" id="page1">
             <div class="p1-content">
                 <span class="subtitle">Analyse Territoriale & Géomatique</span>
-                <h1>Aude<br>Analytics.</h1>
+                <h1>Aude<br>Mise à jour.</h1>
                 <hr class="separator">
                 
                 <p class="description-text" style="font-size:1.2rem; color:var(--color-dark); font-weight:500;">
@@ -379,8 +380,8 @@
 
                         <div class="filter-row">
                             <button class="filter-btn" style="background:var(--c-water)" onclick="toggleFilter('Eau', this)">Eau</button>
-                            <button class="filter-btn" style="background:#88C425" onclick="toggleFilter('Nature', this)">Nature</button>
-                            <button class="filter-btn" style="background:#3E8E41" onclick="toggleFilter('Forêt', this)">Forêt</button>
+                            <button class="filter-btn" style="background:var(--c-nature)" onclick="toggleFilter('Nature', this)">Nature</button>
+                            <button class="filter-btn" style="background:var(--c-foret)" onclick="toggleFilter('Forêt', this)">Forêt</button>
                             <button class="filter-btn" style="background:var(--c-agri)" onclick="toggleFilter('Agri', this)">Agri</button>
                             <button class="filter-btn" style="background:var(--c-artif)" onclick="toggleFilter('Artif', this)">Artif</button>
                         </div>
@@ -476,7 +477,7 @@
             </div>
 
             <div style="text-align:center; margin-top:60px; margin-bottom:40px;">
-                <a href="visualisation.html" class="cta-btn">
+                <a href="map.html" class="cta-btn">
                     Accéder à la Carte<i class="fas fa-database"></i>
                 </a>
                 <p style="margin-top:15px; font-size:0.8rem; color:#999;">Export compatible SIG (QGIS, ArcGIS) · Projection Lambert 93</p>
@@ -537,10 +538,11 @@
 
         // B. DEFINITION DES COULEURS (Palette du site)
         // --------------------------------------------
-        const C_ARTIF  = '#D64541'; // Rouge
+        const C_ARTIF  = '#ec7a7a'; // Rouge
         const C_AGRI   = '#F2CA27'; // Jaune/Orange
-        const C_NATURE = '#88C425'; // Vert
+        const C_NATURE = '#699a1c'; // Vert
         const C_EAU    = '#4A90E2'; // Bleu
+        const C_FORET = '#835217' ; // Marron (Forêt spécifique)
 
 
         // C. STYLE POUR OSO (Gauche) - Basé sur les codes 1 à 23
@@ -723,9 +725,9 @@
 
         function getCategoryColor(cat) {
             switch(cat) {
-                case 'Eau': return '#4A90E2'; case 'Nature': return '#88C425';
-                case 'Forêt': return '#3E8E41'; case 'Agri': return '#F2CA27';
-                case 'Artif': return '#D64541'; default: return '#ccc';
+                case 'Eau': return '#4A90E2'; case 'Nature': return '#699a1c';
+                case 'Forêt': return '#835217'; case 'Agri': return '#F2CA27';
+                case 'Artif': return '#ec7a7a'; default: return '#ccc';
             }
         }
 
@@ -851,7 +853,7 @@
             if(!targetDalle) targetDalle = document.getElementById('p4-dalleSelector').value;
 
             // Stats M1
-            var stats = { 'Eau':{area:0,c:0,col:'#4A90E2'}, 'Nature':{area:0,c:0,col:'#88C425'}, 'Forêt':{area:0,c:0,col:'#3E8E41'}, 'Agri':{area:0,c:0,col:'#F2CA27'}, 'Artif':{area:0,c:0,col:'#D64541'} };
+            var stats = { 'Eau':{area:0,c:0,col:'#4A90E2'}, 'Nature':{area:0,c:0,col:'#699a1c'}, 'Forêt':{area:0,c:0,col:'#835217'}, 'Agri':{area:0,c:0,col:'#F2CA27'}, 'Artif':{area:0,c:0,col:'#ec7a7a'} };
             var totalArea = 0;
 
             geoDataM1.features.forEach(f => {
@@ -874,7 +876,7 @@
             if(!targetDalle) targetDalle = document.getElementById('p4-dalleSelector').value;
 
             // Stats M2
-            var stats = { 'Eau':{area:0,c:0,col:'#4A90E2'}, 'Nature':{area:0,c:0,col:'#88C425'}, 'Forêt':{area:0,c:0,col:'#3E8E41'}, 'Agri':{area:0,c:0,col:'#F2CA27'}, 'Artif':{area:0,c:0,col:'#D64541'} };
+            var stats = { 'Eau':{area:0,c:0,col:'#4A90E2'}, 'Nature':{area:0,c:0,col:'#699a1c'}, 'Forêt':{area:0,c:0,col:'#835217'}, 'Agri':{area:0,c:0,col:'#F2CA27'}, 'Artif':{area:0,c:0,col:'#ec7a7a'} };
             var totalArea = 0;
 
             geoDataM2.features.forEach(f => {
@@ -1005,6 +1007,15 @@
         function polygonArea(c) {
             var a=0; if(c.length>2){ for(var i=0;i<c.length-1;i++){ a+=(c[i][0]*81270*c[i+1][1]*111111)-(c[i+1][0]*81270*c[i][1]*111111); }} return Math.abs(a/2);
         }
+
+        const COLORS = {
+            Artif:  getComputedStyle(document.documentElement).getPropertyValue('--c-artif').trim(),
+            Agri:   getComputedStyle(document.documentElement).getPropertyValue('--c-agri').trim(),
+            Nature: getComputedStyle(document.documentElement).getPropertyValue('--c-nature').trim(),
+            Eau:    getComputedStyle(document.documentElement).getPropertyValue('--c-water').trim(),
+            Foret:  getComputedStyle(document.documentElement).getPropertyValue('--c-foret').trim()
+       };
+
     </script>
 </body>
 </html>
